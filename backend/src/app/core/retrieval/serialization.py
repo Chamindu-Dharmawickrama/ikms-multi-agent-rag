@@ -4,7 +4,6 @@ from typing import List
 
 from langchain_core.documents import Document
 
-
 def serialize_chunks(docs: List[Document]) -> str:
     """Serialize a list of Document objects into a formatted CONTEXT string.
 
@@ -19,13 +18,12 @@ def serialize_chunks(docs: List[Document]) -> str:
     Returns:
         Formatted string with all chunks serialized.
     """
+
     context_parts = []
 
     for idx, doc in enumerate(docs, start=1):
-        # Extract page number from metadata
-        page_num = doc.metadata.get("page") or doc.metadata.get(
-            "page_number", "unknown"
-        )
+        # get the page number of the documnet
+        page_num = doc.metadata.get("page") or doc.metadata.get("page_number", "unknown")
 
         # Format chunk with index and page number
         chunk_header = f"Chunk {idx} (page={page_num}):"
@@ -33,4 +31,4 @@ def serialize_chunks(docs: List[Document]) -> str:
 
         context_parts.append(f"{chunk_header}\n{chunk_content}")
 
-    return "\n\n".join(context_parts)
+    return "\n\n".join(context_parts)    

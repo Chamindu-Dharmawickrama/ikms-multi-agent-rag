@@ -5,7 +5,6 @@ from langchain_core.tools import tool
 from ..retrieval.vector_store import retrieve
 from ..retrieval.serialization import serialize_chunks
 
-
 @tool(response_format="content_and_artifact")
 def retrieval_tool(query: str):
     """Search the vector database for relevant document chunks.
@@ -23,12 +22,11 @@ def retrieval_tool(query: str):
           with metadata. Format: "Chunk 1 (page=X): ...\n\nChunk 2 (page=Y): ..."
         - artifact: List of Document objects with full metadata for reference
     """
-    # Retrieve documents from vector store
+
+    # Retrieve documents from vector store according to the query 
     docs = retrieve(query, k=4)
 
     # Serialize chunks into formatted string (content)
     context = serialize_chunks(docs)
 
-    # Return tuple: (serialized content, artifact documents)
-    # This follows LangChain's content_and_artifact response format
     return context, docs

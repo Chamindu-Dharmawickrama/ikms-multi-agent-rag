@@ -6,14 +6,15 @@ for OpenAI models, Pinecone settings, and other system parameters.
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
+    # gpt-4o-mini
+
     # OpenAI Configuration
     openai_api_key: str
-    openai_model_name: str = "gpt-4o-mini"
-    openai_embedding_model_name: str = "text-embedding-3-large"
+    openai_model_name: str = "gpt-5-mini"
+    openai_embedding_model_name: str = "text-embedding-3-small"
 
     # Pinecone Configuration
     pinecone_api_key: str
@@ -29,10 +30,8 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-
 # Create a singleton settings instance
-_settings: Settings | None = None
-
+_settings: Settings | None = None 
 
 def get_settings() -> Settings:
     """Get the application settings instance (singleton pattern).
@@ -40,6 +39,7 @@ def get_settings() -> Settings:
     Returns:
         Settings instance with all configuration values loaded.
     """
+
     global _settings
     if _settings is None:
         _settings = Settings()

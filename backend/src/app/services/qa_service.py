@@ -4,11 +4,8 @@ This module provides a simple interface for the FastAPI layer to interact
 with the multi-agent RAG pipeline without depending directly on LangGraph
 or agent implementation details.
 """
-
 from typing import Dict, Any
-
 from ..core.agents.graph import run_qa_flow
-
 
 def answer_question(question: str) -> Dict[str, Any]:
     """Run the multi-agent QA flow for a given question.
@@ -19,4 +16,6 @@ def answer_question(question: str) -> Dict[str, Any]:
     Returns:
         Dictionary containing at least `answer` and `context` keys.
     """
+
+    # run the qa flow
     return run_qa_flow(question)

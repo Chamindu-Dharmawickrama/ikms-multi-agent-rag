@@ -1,12 +1,10 @@
 from pathlib import Path
-
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile, status
-from fastapi.responses import JSONResponse
-
-from .models import QuestionRequest, QAResponse
-from .services.qa_service import answer_question
 from .services.indexing_service import index_pdf_file
-
+from pydantic import BaseModel
+from .models import QAResponse, QuestionRequest
+from fastapi.responses import JSONResponse
+from .services.qa_service import answer_question
 
 app = FastAPI(
     title="Class 12 Multi-Agent RAG Demo",
@@ -18,7 +16,12 @@ app = FastAPI(
     version="0.1.0",
 )
 
+@app.post("/check")
+def root():
+    return {"status": "API is running"}
 
+
+# exception handling 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(
     request: Request, exc: Exception
@@ -39,7 +42,7 @@ async def unhandled_exception_handler(
         content={"detail": "Internal server error"},
     )
 
-
+# question and answer endpoint 
 @app.post("/qa", response_model=QAResponse, status_code=status.HTTP_200_OK)
 async def qa_endpoint(payload: QuestionRequest) -> QAResponse:
     """Submit a question about the vector databases paper.
@@ -53,13 +56,11 @@ async def qa_endpoint(payload: QuestionRequest) -> QAResponse:
 
     question = payload.question.strip()
     if not question:
-        # Explicit validation beyond Pydantic's type checking to ensure
-        # non-empty questions.
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="`question` must be a non-empty string.",
         )
-
+    
     # Delegate to the service layer which runs the multi-agent QA graph
     result = answer_question(question)
 
@@ -67,10 +68,17 @@ async def qa_endpoint(payload: QuestionRequest) -> QAResponse:
         answer=result.get("answer", ""),
         context=result.get("context", ""),
     )
+    
 
 
+class IndexResponse(BaseModel):
+    status: str
+    message: str
+    chunks_indexed: int
+
+# index the file 
 @app.post("/index-pdf", status_code=status.HTTP_200_OK)
-async def index_pdf(file: UploadFile = File(...)) -> dict:
+async def index_pdf(file : UploadFile = File(...)) -> IndexResponse:
     """Upload a PDF and index it into the vector database.
 
     This endpoint:
@@ -80,24 +88,30 @@ async def index_pdf(file: UploadFile = File(...)) -> dict:
     - Indexes those documents into the configured Pinecone vector store
     """
 
-    if file.content_type not in ("application/pdf",):
+    if file.content_type not in ("application/pdf"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only PDF files are supported.",
+            detail="Only PDF files are supported."
         )
+    
+    # ---- first need to save the file in backend ----
 
+    # base llocation that file need to go
     upload_dir = Path("data/uploads")
     upload_dir.mkdir(parents=True, exist_ok=True)
 
+    # full file path name 
     file_path = upload_dir / file.filename
     contents = await file.read()
+
+    # save the file content to the file path 
     file_path.write_bytes(contents)
 
-    # Index the saved PDF
+    # index the saved file 
     chunks_indexed = index_pdf_file(file_path)
 
-    return {
-        "filename": file.filename,
-        "chunks_indexed": chunks_indexed,
-        "message": "PDF indexed successfully.",
-    }
+    return IndexResponse(
+        status= "success",
+        message= f"PDF '{file.filename}' uploaded and indexed successfully",
+        chunks_indexed = chunks_indexed,
+    )
