@@ -3,6 +3,29 @@ from .services.indexing_service import index_pdf_file
 from fastapi.responses import JSONResponse
 from .api.ask import ask_router
 from .api.file import file_router
+from .api.conversation import conversation_router
+from contextlib import asynccontextmanager
+from .db.connection import init_database , close_connection_pool
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager for startup and shutdown events."""
+    print("Starting application...")
+    try:
+        init_database()
+    except Exception as e:
+        print(f"Database initialization failed!!: {e}")
+        raise
+
+    #before yield → startup
+    #after yield → shutdown    
+    yield
+
+    print("Shutting down application...")
+    close_connection_pool()
+    print("Database connections closed!")
+
 
 server = FastAPI(
     title="Multi-Agent RAG Demo",
@@ -12,6 +35,7 @@ server = FastAPI(
         "will be wired to a multi-agent RAG pipeline in later user stories."
     ),
     version="0.1.0",
+    lifespan= lifespan
 )
 
 @server.post("/health")
@@ -42,3 +66,4 @@ async def unhandled_exception_handler(
 # routes
 server.include_router(ask_router)
 server.include_router(file_router)
+server.include_router(conversation_router)

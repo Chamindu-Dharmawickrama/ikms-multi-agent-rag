@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     pinecone_api_key: str
     pinecone_index_name: str
 
+    # PostgreSQL Configuration (Neon Database)
+    database_url: str
+
     # Retrieval Configuration
     retrieval_k: int = 4
 
