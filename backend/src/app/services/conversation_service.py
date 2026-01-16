@@ -30,21 +30,52 @@ class ConversationService:
             ConnectionError: If database connection fails
             Exception: For other database errors
         """
-        try:
-            session_id = str(uuid4())
+    
+        session_id = str(uuid4())
 
-            # Create conversation in PostgreSQL database
-            self.db_service.create_conversation(
-                session_id = session_id,
-                metadata = {"created_at": datetime.utcnow().isoformat()}
-            )
+        # Create conversation in PostgreSQL database
+        self.db_service.create_conversation(
+            session_id = session_id,
+            metadata = {"created_at": datetime.utcnow().isoformat()}
+        )
 
-            return session_id
-        except Exception as e:
-            if "connection" in str(e).lower() or "pool" in str(e).lower():
-                raise ConnectionError(f"Database connection failed: {str(e)}")
-            # Otherwise, re-raise the original exception
-            raise
+        return session_id    
+        
+
+    # ask questions
+    def ask_question(self, session_id: str, question: str) -> Dict[str, Any]:
+        """Ask a question within a conversation context.
+        
+        LangGraph's PostgreSQL checkpointer automatically manages conversation history
+        via the thread_id (session_id). We also store messages in our custom database
+        for additional querying capabilities.
+        
+        Args:
+            session_id: The conversation session ID (used as thread_id).
+            question: The user's question.
+        
+        Returns:
+            Dictionary containing answer, context, and session information.
+        
+        Raises:
+            ValueError: If session_id is not found.
+        """
+
+        # verify session exists
+        conversation = self.db_service.get_conversation(session_id=session_id)
+        if not conversation:
+            raise ValueError(f"Session {session_id} not found")
+        
+        # add user msg to db 
+        self.db_service.add_message(
+            session_id=session_id,
+            role="USER",
+            content=question,
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+
+        # Run QA flow with history
+               
     
 
 # Singleton instance

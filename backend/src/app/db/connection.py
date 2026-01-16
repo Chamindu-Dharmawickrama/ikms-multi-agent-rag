@@ -60,12 +60,12 @@ def init_database():
             # Create conversations table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS conversations (
-                        session_id VARCHAR(255) PRIMARY KEY,
-                        created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-                        updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-                        message_count INTEGER DEFAULT 0,
-                        metadata JSONB DEFAULT '{}'::jsonb
-                    )
+                    session_id VARCHAR(255) PRIMARY KEY,
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    message_count INTEGER DEFAULT 0,
+                    metadata JSONB DEFAULT '{}'::jsonb
+                )
             """)
 
             cursor.execute("""
