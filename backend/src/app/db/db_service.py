@@ -82,7 +82,7 @@ class ConversationDatabaseService:
                     )
 
                     if include_messages:
-                        messages = ""
+                        messages = self.get_messages(session_id)
                         conversation.messages = messages
 
                     return conversation    
@@ -102,7 +102,7 @@ class ConversationDatabaseService:
         
         Args:
             session_id: The conversation session ID.
-            role: Message role ("user" or "assistant").
+            role: Message role ("USER" or "Assistant").
             content: Message content.
             metadata: Optional message metadata.
             
@@ -140,7 +140,121 @@ class ConversationDatabaseService:
                     )
 
         except Exception as e:
-            raise Exception(f"Database error adding message: {str(e)}") from e  
+            raise Exception(f"Database error adding message: {str(e)}") from e
+
+    # get all the messages according to the session_id
+    def get_messages(self, session_id: str, limit: Optional[int] = None) -> List[MessageDB]:
+        """Get all messages for a conversation.
+        
+        Args:
+            session_id: The conversation session ID.
+            limit: Optional limit on number of messages to return (most recent).
+            
+        Returns:
+            List of MessageDB instances ordered by timestamp.
+        """
+
+        try:
+            with get_db_connection() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                        SELECT id, session_id, role, content, timestamp, metadata
+                        FROM messages
+                        WHERE session_id = %s
+                        ORDER BY timestamp ASC
+                    """
+
+                    if limit:
+                        query += " LIMIT %s"
+                        cursor.execute(query, (session_id, limit))
+                    else:
+                        cursor.execute(query, (session_id,))
+
+                    message_rows = cursor.fetchall()
+
+                    return [
+                        MessageDB(
+                            id=row["id"],
+                            session_id=row["session_id"],
+                            role=row["role"],
+                            content=row["content"],
+                            timestamp=row["timestamp"],
+                            metadata=row["metadata"]                        
+                        ) for row in message_rows
+                    ]
+
+        except Exception as e:
+            raise Exception(f"Database error getting messages: {str(e)}") from e
+        
+    # delete conversation  
+    def delete_conversation(self, session_id : str ) -> bool:
+        """Delete a conversation and all its messages.
+        
+        Args:
+            session_id: The conversation session ID.
+            
+        Returns:
+            True if deleted, False if not found.
+        """
+        try:
+            with get_db_connection() as connection:
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        DELETE FROM conversations
+                        WHERE session_id = %s
+                    """, (session_id,))
+
+                    deleted = cursor.rowcount > 0
+                    connection.commit()
+
+                    return deleted
+                
+        except Exception as e:
+            raise Exception(f"Database error deleting conversation: {str(e)}") from e
+        
+    # get lsit of conservations 
+    def list_conversations(self, limit: Optional[int] = None) -> List[ConversationDB]:
+        """List all conversations.
+        
+        Args:
+            limit: Optional limit on number of conversations to return.
+            
+        Returns:
+            List of ConversationDB instances.
+        """
+
+        try:
+            with get_db_connection() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                        SELECT session_id, created_at, updated_at, message_count, metadata
+                        FROM conversations
+                        ORDER BY updated_at DESC
+                    """
+                    
+                    if limit:
+                        query += f" LIMIT {limit}"
+
+                    cursor.execute(query)
+                    conversations_rows = cursor.fetchall()
+
+                    return [
+                        ConversationDB(
+                            session_id=row["session_id"],
+                            created_at=row["created_at"],
+                            updated_at=row["updated_at"],
+                            message_count=row["message_count"],
+                            metadata=row["metadata"]
+                        )
+                        for row in conversations_rows
+                    ]  
+                
+        except Exception as e:
+            raise Exception(f"Database error listing conversations: {str(e)}") from e
+
+
+            
+                
 
 
 

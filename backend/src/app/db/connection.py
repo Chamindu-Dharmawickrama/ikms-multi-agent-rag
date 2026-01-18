@@ -1,6 +1,5 @@
 """Database connection management for PostgreSQL."""
 
-import psycopg
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 from typing import Optional

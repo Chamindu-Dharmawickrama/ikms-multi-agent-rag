@@ -6,6 +6,7 @@ from .api.file import file_router
 from .api.conversation import conversation_router
 from contextlib import asynccontextmanager
 from .db.connection import init_database , close_connection_pool
+from .db.checkpointer import get_postgres_checkpointer
 
 
 @asynccontextmanager
@@ -14,6 +15,8 @@ async def lifespan(app: FastAPI):
     print("Starting application...")
     try:
         init_database()
+        # creates LangGraph tables
+        get_postgres_checkpointer()
     except Exception as e:
         print(f"Database initialization failed!!: {e}")
         raise
@@ -38,7 +41,7 @@ server = FastAPI(
     lifespan= lifespan
 )
 
-@server.post("/health")
+@server.get("/health")
 def root():
     return {"status": "API is running"}
 
