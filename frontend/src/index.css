@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+    --color-custom-dark: #1b1b1c;
+    --color-custom-dark-less: #373738;
+    --color-custom-dark-more: #161617;
+}
+
+@layer base {
+    /* CSS Reset */
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+        min-height: 100vh;
+        line-height: 1.5;
+    }
+
+    img,
+    picture,
+    video,
+    canvas,
+    svg {
+        display: block;
+        max-width: 100%;
+    }
+
+    input,
+    button,
+    textarea,
+    select {
+        font: inherit;
+    }
+
+    p,
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        overflow-wrap: break-word;
+    }
+
+    #root {
+        isolation: isolate;
+    }
+}

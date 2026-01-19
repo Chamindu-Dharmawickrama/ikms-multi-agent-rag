@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
 from .services.indexing_service import index_pdf_file
 from fastapi.responses import JSONResponse
 from .api.ask import ask_router
@@ -7,7 +8,6 @@ from .api.conversation import conversation_router
 from contextlib import asynccontextmanager
 from .db.connection import init_database , close_connection_pool
 from .db.checkpointer import get_postgres_checkpointer
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -39,6 +39,15 @@ server = FastAPI(
     ),
     version="0.1.0",
     lifespan= lifespan
+)
+
+# Configure CORS
+server.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # Frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
 )
 
 @server.get("/health")
