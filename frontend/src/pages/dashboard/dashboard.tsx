@@ -1,5 +1,5 @@
 import { useNavigation } from "../../contexts/NavigationContext";
-import Chat from "./features/chat/chat.tsx";
+import Chat from "./features/chat/Chat";
 import Home from "./features/home/home";
 
 import UploadDocuments from "./features/uploadDocuments/UploadDocuments";
