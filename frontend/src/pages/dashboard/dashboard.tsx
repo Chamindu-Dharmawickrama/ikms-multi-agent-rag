@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigation } from "../../contexts/NavigationContext";
 import Home from "./features/home/home";
 import Chat from "./features/chat/Chat";

@@ -1,11 +1,10 @@
 import axios from "axios";
 
-const API_BASE_URL =
-    import.meta.env.API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.API_BASE_URL || "http://localhost:8000";
 
 const api = axios.create({
     baseURL: API_BASE_URL,
-    timeout: 30000,    
+    timeout: 120000,
 });
 
 // Request interceptor
@@ -28,7 +27,6 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
-      
         if (error.response?.status === 401) {
             // window.location.href = '/login';
         }

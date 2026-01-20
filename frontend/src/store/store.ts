@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import fileUploadReducer from "./fileUpload/fileSlice";
+import fileReducer from "./fileUpload/fileSlice";
+import chatReducer from "./chat/chatSlice";
 
 export const store = configureStore({
     reducer: {
-        fileUpload: fileUploadReducer,
+        file: fileReducer,
+        chat: chatReducer,
     },
 });
 

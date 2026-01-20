@@ -15,7 +15,7 @@ const UploadDocuments = () => {
     const dispatch = useDispatch<AppDispatch>();
 
     const { uploading, uploadSuccess, uploadError, fileData } = useSelector(
-        (state: RootState) => state.fileUpload,
+        (state: RootState) => state.file,
     );
 
     // Clear file state after successful upload
