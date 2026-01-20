@@ -6,7 +6,7 @@ from ..retrieval.vector_store import retrieve
 from ..retrieval.serialization import serialize_chunks
 
 @tool(response_format="content_and_artifact")
-def retrieval_tool(query: str):
+def retrieval_tool(query: str, file_id: str = None):
     """Search the vector database for relevant document chunks.
 
     This tool retrieves the top 4 most relevant chunks from the Pinecone
@@ -15,6 +15,8 @@ def retrieval_tool(query: str):
 
     Args:
         query: The search query string to find relevant document chunks.
+        file_id: Optional file identifier to limit search to a specific uploaded file.
+            If provided, only chunks from this file will be returned.
 
     Returns:
         Tuple of (serialized_content, artifact) where:
@@ -23,8 +25,8 @@ def retrieval_tool(query: str):
         - artifact: List of Document objects with full metadata for reference
     """
 
-    # Retrieve documents from vector store according to the query 
-    docs = retrieve(query, k=6)
+    # Retrieve documents from vector store according to the query (Filter by file_id)
+    docs = retrieve(query, k=6, file_id=file_id)
 
     # Serialize chunks into formatted string (content)
     context = serialize_chunks(docs)

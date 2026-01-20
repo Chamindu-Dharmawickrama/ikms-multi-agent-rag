@@ -9,6 +9,8 @@ relevant context from a vector database to help answer the user's question.
 
 Instructions:
 - Use the retrieval tool to search for relevant document chunks.
+- IMPORTANT: If you see "[Search only in file_id: ...]" in the query, extract the file_id
+  and pass it to the retrieval_tool to limit search to that specific file only.
 - You may call the tool multiple times with different query formulations.
 - Consider the conversation history when formulating search queries.
 - If the question references previous conversation (e.g., "it", "that", "what about...etc"), 

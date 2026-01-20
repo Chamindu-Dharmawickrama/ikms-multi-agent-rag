@@ -11,6 +11,7 @@ class CreateConversationResponse(BaseModel):
     """Response for creating a new conversation."""
     session_id: str
     message: str
+    file_id: Optional[str] = None
 
 class ConversationQuestionRequest(BaseModel):
     """Request body for asking a question in a conversation."""
@@ -38,7 +39,9 @@ class ConversationHistoryResponse(BaseModel):
     message_count: int
     messages: List[MessageResponse]
     current_state: dict
-    conversation_history: str  
+    conversation_history: str
+    active_file_id: Optional[str] = None  
+    filename: Optional[str] = None  
 
 class DeleteConversationResponse(BaseModel):
     """Response for deleting a conversation."""
@@ -50,7 +53,9 @@ class ConversationSummary(BaseModel):
     session_id: str
     created_at: str
     updated_at: str
-    message_count: int   
+    message_count: int
+    active_file_id: Optional[str] = None
+    filename: Optional[str] = None  
 
 
 # create a new conversation session (Session id and confirmation message.)
@@ -59,11 +64,14 @@ class ConversationSummary(BaseModel):
         response_model=CreateConversationResponse,
         status_code=status.HTTP_201_CREATED
 )
-async def create_conversation()-> CreateConversationResponse:
+async def create_conversation(file_id: Optional[str] = None)-> CreateConversationResponse:
     """Create a new conversation session.
+
+    Args:
+        file_id: Optional file_id to associate with this conversation for scoped retrieval
     
     Returns:
-        session_id and confirmation message.
+        session_id, confirmation message, file_id.
         
     Raises:
         HTTPException: 503 if database is unavailable
@@ -71,11 +79,12 @@ async def create_conversation()-> CreateConversationResponse:
     """
     try:
         service = get_conversation_service()
-        session_id = service.create_conversation()
+        session_id = service.create_conversation(file_id=file_id)
 
         return CreateConversationResponse(
             session_id=session_id,
-            message="Conversation session created successfully"
+            message="Conversation session created successfully",
+            file_id=file_id
         )
     
     except ConnectionError as e:
@@ -197,7 +206,9 @@ async def get_conversation_history(session_id: str, limit: Optional[int]= None )
             message_count=history["message_count"],
             messages=[MessageResponse(**msg) for msg in history["messages"]],
             current_state=history["current_state"],
-            conversation_history=history["conversation_history"]
+            conversation_history=history["conversation_history"],
+            active_file_id=history.get("active_file_id"),
+            filename=history.get("filename")
         )
         
     except ValueError as e:

@@ -48,28 +48,45 @@ def get_retriever(k: int | None = None):
     return vector_store.as_retriever(search_kwargs={"k": k})    
 
 
-def retrieve(query: str, k:int | None = None) -> List[Document]:
+def retrieve(query: str, k:int | None = None, file_id: str | None = None) -> List[Document]:
     """Retrieve documents from Pinecone for a given query.
 
     Args:
         query: Search query string.
         k: Number of documents to retrieve (defaults to config value).
+        file_id: Optional file_id to filter results to a specific uploaded file.
 
     Returns:
         List of Document objects with metadata (including page numbers).
     """
 
-    # get the relavangt documnets according to the query  
-    retriever = get_retriever(k=k)
+    settings = get_settings()
+    if k is None:
+        k = settings.retrieval_k
+
+    vector_store = _get_vector_store()
+
+    # get the relavangt documnets according to the query (filter chunks by file metadata)
+    if file_id:
+        retriever = vector_store.as_retriever(search_kwargs={
+            "k" : k,
+            "filter" : {"file_id": file_id}
+            }
+        )
+    else:
+        retriever = vector_store.as_retriever(search_kwargs={"k": k})    
+
     return retriever.invoke(query)
 
 
 # index documents
-def index_documents(docs) -> int:
+def index_documents(docs,file_id: str = None, filename: str = None) -> int:
     """Index a list of Document objects into the Pinecone vector store.
 
     Args:
         docs: Documents to embed and upsert into the vector index.
+        file_id: Unique identifier for the source file (for filtering).
+        filename: Original filename for reference.
 
     Returns:
         The number of documents indexed.
@@ -78,6 +95,13 @@ def index_documents(docs) -> int:
     # split the documnet 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     texts = text_splitter.split_documents(docs)
+
+    # add meta data to each chunk 
+    if file_id:
+        for doc in texts:
+            doc.metadata["file_id"] = file_id
+            if filename:
+                doc.metadata["filename"] = filename
 
     # add chunks to the vector store 
     vector_store = _get_vector_store()

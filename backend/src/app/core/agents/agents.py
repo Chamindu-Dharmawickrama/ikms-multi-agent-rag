@@ -91,17 +91,22 @@ def retrieval_node(state: QAState) -> QAState:
     This node:
     - Sends the user's question to the Retrieval Agent.
     - Considers conversation history for better query formulation.
+    - Uses file_id (if provided) to limit search to specific uploaded file.
     - The agent uses the attached retrieval tool to fetch document chunks.
     - Extracts the tool's content (CONTEXT string) from the ToolMessage.
     - Stores the consolidated context string in `state["context"]`.
     """
     question = state['question']
+    file_id = state.get('file_id')
     conversation_context = _build_conversation_context(state)
 
     # Build enhanced query with conversation 
     query_message = question
     if conversation_context:
         query_message = f"Conversation History:\n{conversation_context}\n\nCurrent Question: {question}"
+
+    if file_id:
+        query_message = f"[Search only in file_id: {file_id}]\n\n{query_message}" 
 
     # execute the retrieval_agent with the user msg
     result = retrieval_agent.invoke({"messages":[HumanMessage(content=query_message)]})

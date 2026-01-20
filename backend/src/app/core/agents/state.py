@@ -19,3 +19,4 @@ class QAState(TypedDict):
     answer: str | None
     conversation_history : str | None
     conversation_summary : str | None
+    file_id: str | None

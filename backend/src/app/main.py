@@ -44,10 +44,10 @@ server = FastAPI(
 # Configure CORS
 server.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Frontend URL
+    allow_origins=["http://localhost:5173"], 
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["*"],  
+    allow_headers=["*"], 
 )
 
 @server.get("/health")
@@ -58,7 +58,7 @@ def root():
 @server.exception_handler(Exception)
 async def unhandled_exception_handler(
     request: Request, exc: Exception
-) -> JSONResponse:  # pragma: no cover - simple demo handler
+) -> JSONResponse:  
     """Catch-all handler for unexpected errors.
 
     FastAPI will still handle `HTTPException` instances and validation errors
@@ -67,7 +67,6 @@ async def unhandled_exception_handler(
     """
 
     if isinstance(exc, HTTPException):
-        # Let FastAPI handle HTTPException as usual.
         raise exc
 
     return JSONResponse(

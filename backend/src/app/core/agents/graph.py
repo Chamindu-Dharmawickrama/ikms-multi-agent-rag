@@ -107,15 +107,16 @@ def run_qa_flow(question : str) -> Dict[str, Any]:
 
 
 # run_qa_flow_with_history
-def run_qa_flow_with_history(question: str, thread_id: str) -> Dict[str, Any]:
+def run_qa_flow_with_history(question: str, thread_id: str, file_id: str = None) -> Dict[str, Any]:
     """Run the multi-agent QA flow with conversation history using LangGraph's MemorySaver.
 
     This is the entry point for conversational multi-turn QA. It:
     1. Loads previous conversation history from MemorySaver using thread_id
     2. Initializes the graph state with the question AND previous history
-    3. Executes the linear agent flow (Retrieval -> Summarization -> Verification)
-    4. LangGraph automatically saves the updated conversation state
-    5. Returns the final results
+    3. Uses file_id (if provided) to limit retrieval to a specific uploaded file
+    4. Executes the linear agent flow (Retrieval -> Summarization -> Verification)
+    5. LangGraph automatically saves the updated conversation state
+    6. Returns the final results
     
     The conversation_history is preserved across turns by loading it from
     the checkpointer and passing it in the initial state.
@@ -123,6 +124,7 @@ def run_qa_flow_with_history(question: str, thread_id: str) -> Dict[str, Any]:
     Args:
         question: The user's current question.
         thread_id: Unique identifier for the conversation thread (session_id).
+        file_id: Optional file identifier to limit search to a specific uploaded file.
 
     Returns:
         Dictionary with keys:
@@ -138,12 +140,15 @@ def run_qa_flow_with_history(question: str, thread_id: str) -> Dict[str, Any]:
     # Load previous conversation history from checkpointer 
     previous_history = ""
     previous_summary = ""
+    previous_file_id = file_id
 
     try:
        previous_state = graph.get_state(config)
        if previous_state and previous_state.values:
            previous_history = previous_state.values.get("conversation_history", "")
            previous_summary = previous_state.values.get("conversation_summary", "")
+           if not file_id:
+               previous_file_id = previous_state.values.get("file_id")
            print(f"-- Loaded previous history (length: {len(previous_history)} chars)")
            if previous_summary:
               print(f"-- Loaded previous summary (length: {len(previous_summary)} chars)")
@@ -158,6 +163,7 @@ def run_qa_flow_with_history(question: str, thread_id: str) -> Dict[str, Any]:
         "answer": None,
         "conversation_history": previous_history,  
         "conversation_summary": previous_summary,  
+        "file_id": previous_file_id,
     } 
 
     # the updated state saved to the PostgreSQL db 
@@ -186,11 +192,3 @@ def get_conversation_state(thread_id: str) -> Dict[str, Any] | None:
     except Exception as e:
         print(f"-- Error getting conversation state for thread {thread_id}: {e}")
         return None
-
-
-
-
-
-
-
-

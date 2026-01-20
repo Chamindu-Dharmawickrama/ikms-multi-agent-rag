@@ -21,9 +21,12 @@ class ConversationService:
         self.db_service = get_conversation_db_service()
 
     # create new conversation
-    def create_conversation (self) -> str:
+    def create_conversation (self, file_id: str = None) -> str:
         """Create a new conversation session in PostgreSQL.
-        
+
+        Args:
+            file_id: Optional file_id to associate with this conversation.
+
         Returns:
             session_id: The unique identifier for the conversation (used as thread_id).
             
@@ -37,7 +40,8 @@ class ConversationService:
         # Create conversation in PostgreSQL database
         self.db_service.create_conversation(
             session_id = session_id,
-            metadata = {"created_at": datetime.utcnow().isoformat()}
+            metadata = {"created_at": datetime.utcnow().isoformat()},
+            active_file_id=file_id
         )
 
         return session_id    
@@ -67,6 +71,8 @@ class ConversationService:
         if not conversation:
             raise ValueError(f"Session {session_id} not found")
         
+        file_id = conversation.active_file_id
+        
         # add user msg to db 
         self.db_service.add_message(
             session_id=session_id,
@@ -76,7 +82,7 @@ class ConversationService:
         )
 
         # Run QA flow with history
-        result = run_qa_flow_with_history(question, thread_id=session_id)
+        result = run_qa_flow_with_history(question, thread_id=session_id, file_id=file_id)
         answer = result.get("answer", "")
 
         # Add assistant response to database
@@ -100,6 +106,7 @@ class ConversationService:
             "conversation_history": result.get("conversation_history", "")
         }
 
+
     def get_conversation_history(self, session_id: str, limit:Optional[int] = None ) -> Dict[str, any]:
          
         """Retrieve the conversation from PostgreSQL database.
@@ -115,7 +122,6 @@ class ConversationService:
             ValueError: If session_id is not found.
         """
         
-        #verify the conversation is exist 
         conversation = self.db_service.get_conversation(session_id, include_messages=True)
         if not conversation:
             raise ValueError(f"Session {session_id} not found")
@@ -126,11 +132,20 @@ class ConversationService:
         # get the LangGraph state
         state = get_conversation_state(session_id)   
 
+        # Get filename if file_id exists
+        filename = None
+        if conversation.active_file_id:
+            file_record = self.db_service.get_file_record(conversation.active_file_id)
+            if file_record:
+                filename = file_record.filename
+
         return {
             "session_id": session_id,
             "created_at": conversation.created_at.isoformat(),
             "updated_at": conversation.updated_at.isoformat(),
             "message_count": conversation.message_count,
+            "active_file_id": conversation.active_file_id,
+            "filename": filename,
             "messages": [
                 {
                     "role": msg.role,
@@ -142,6 +157,7 @@ class ConversationService:
             "current_state": state or {},
             "conversation_history": state.get("conversation_history", "") if state else ""                                                
         }
+
 
     def delete_conversation(self, session_id: str) -> bool:
         """Delete a conversation session from PostgreSQL.
@@ -157,7 +173,8 @@ class ConversationService:
             True if deleted, False if not found.
         """
         return self.db_service.delete_conversation(session_id)  
-    
+
+
     def list_conversations(self, limit: Optional[int] = None) -> list[Dict[str, Any]]:
         """List all conversations from PostgreSQL.
         
@@ -170,18 +187,26 @@ class ConversationService:
 
         conversations = self.db_service.list_conversations(limit=limit)
 
-        return [
-            {
+        result = []
+        for conv in conversations:
+            filename = None
+            if conv.active_file_id:
+                file_record = self.db_service.get_file_record(conv.active_file_id)
+                if file_record:
+                    filename = file_record.filename
+            
+            result.append({
                 "session_id": conv.session_id,
                 "created_at": conv.created_at.isoformat(),
                 "updated_at": conv.updated_at.isoformat(),
-                "message_count": conv.message_count
-            }
-            for conv in conversations
-        ]
+                "message_count": conv.message_count,
+                "active_file_id": conv.active_file_id,
+                "filename": filename
+            })
+        
+        return result
     
 
-# Singleton instance
 _conversation_service : Optional[ConversationService] = None
 
 def get_conversation_service() -> ConversationService:

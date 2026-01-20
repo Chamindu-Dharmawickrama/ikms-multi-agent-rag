@@ -56,6 +56,17 @@ def init_database():
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
 
+            # Create files table for tracking uploaded documents
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS files (
+                    file_id VARCHAR(255) PRIMARY KEY,
+                    filename VARCHAR(500) NOT NULL,
+                    file_path VARCHAR(1000),
+                    uploaded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    metadata JSONB DEFAULT '{}'::jsonb
+                )
+            """)
+
             # Create conversations table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS conversations (
@@ -63,6 +74,7 @@ def init_database():
                     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
                     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
                     message_count INTEGER DEFAULT 0,
+                    active_file_id VARCHAR(255) REFERENCES files(file_id) ON DELETE SET NULL,
                     metadata JSONB DEFAULT '{}'::jsonb
                 )
             """)
@@ -74,6 +86,7 @@ def init_database():
                     WHEN duplicate_object THEN null;
                 END $$;
             """)
+            
             # Create messages table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS messages (
