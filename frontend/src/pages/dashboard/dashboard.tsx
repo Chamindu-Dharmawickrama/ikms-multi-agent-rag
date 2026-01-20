@@ -1,6 +1,7 @@
 import { useNavigation } from "../../contexts/NavigationContext";
+import Chat from "./features/chat/chat.tsx";
 import Home from "./features/home/home";
-import Chat from "./features/chat/chat";
+
 import UploadDocuments from "./features/uploadDocuments/UploadDocuments";
 
 const Dashboard = () => {
