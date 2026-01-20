@@ -129,14 +129,14 @@ const Sidebar = () => {
             <aside
                 className={`
                     fixed md:static top-0 left-0 h-screen
-                    w-74 bg-custom-dark 
+                    w-78 bg-custom-dark 
                     text-white flex flex-col
                     transform transition-transform duration-300 ease-in-out
                     z-40 shadow-2xl
                     ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
                 `}
             >
-                <div>
+                <div className="flex flex-col h-full">
                     <div className="flex items-center justify-center p-4 mt-12 md:mt-5  ">
                         <h2
                             className="text-[23px] font-bold bg-clip-text text-transparent bg-white drop-shadow-lg tracking-wide"
@@ -153,7 +153,7 @@ const Sidebar = () => {
                     </div>
 
                     {/* Navigations */}
-                    <nav className="flex flex-col mt-10 space-y-4 px-4">
+                    <nav className="flex flex-col mt-8 md:mt-4 space-y-4 px-4">
                         <button
                             className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 cursor-pointer ${
                                 currentPage === "home"
@@ -165,8 +165,8 @@ const Sidebar = () => {
                                 setIsOpen(false);
                             }}
                         >
-                            <Home size={18} />
-                            <span className="text-[16px]">Home</span>
+                            <Home size={16} />
+                            <span className="text-[15px]">Home</span>
                         </button>
                         <button
                             className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 cursor-pointer ${
@@ -179,8 +179,8 @@ const Sidebar = () => {
                                 setIsOpen(false);
                             }}
                         >
-                            <Bot size={19} />
-                            <span className="text-[16px]">Chat</span>
+                            <Bot size={17} />
+                            <span className="text-[15px]">Chat</span>
                         </button>
                         <button
                             className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 cursor-pointer ${
@@ -193,22 +193,28 @@ const Sidebar = () => {
                                 setIsOpen(false);
                             }}
                         >
-                            <Upload size={18} />
-                            <span className="text-[16px]">
+                            <Upload size={16} />
+                            <span className="text-[15px]">
                                 Upload Documents
                             </span>
                         </button>
                     </nav>
 
                     {currentPage === "chat" && (
-                        <div className="flex-1 overflow-hidden flex flex-col mt-6 pl-4 pr pb-4 min-h-0">
+                        <div className="mt-6 pl-4 pr-4 pb-5 flex-1 flex flex-col min-h-0">
                             <div className="flex items-center justify-between mb-3 shrink-0">
-                                <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                                <h3 className="text-[13px] font-semibold text-gray-300 uppercase tracking-wide">
                                     Recent Conversations
                                 </h3>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar min-h-0">
+                            <div
+                                className="flex-1 overflow-y-auto space-y-2 custom-scrollbar"
+                                style={{
+                                    scrollbarWidth: "thin",
+                                    scrollbarColor: "#4B5563 #1F2937",
+                                }}
+                            >
                                 {loadingConversations ? (
                                     <ConversationsLoading />
                                 ) : conversations.length === 0 ? (
@@ -236,13 +242,13 @@ const Sidebar = () => {
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <MessageSquare className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                                                        <p className="text-[14px] font-medium text-white truncate">
+                                                        <p className="text-[13px] font-medium text-white truncate">
                                                             {
                                                                 conversation.filename
                                                             }
                                                         </p>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-[13px] text-gray-400">
+                                                    <div className="flex items-center gap-2 text-[12px] text-gray-400">
                                                         <span>
                                                             {
                                                                 conversation.message_count
@@ -277,14 +283,14 @@ const Sidebar = () => {
                         </div>
                     )}
 
-                    <div className="absolute bottom-0 w-full mb-6 px-6">
+                    <div className="mt-auto mb-5 px-6 shrink-0">
                         <a
                             href="#"
                             className="text-sm mb-4 block hover:text-gray-300 transition-colors"
                         >
                             FAQ
                         </a>
-                        <div className="border-t text-gray-400 border-gray-700 pt-4">
+                        <div className="border-t text-gray-400 border-gray-700 pt-3">
                             Free Plan
                         </div>
                     </div>

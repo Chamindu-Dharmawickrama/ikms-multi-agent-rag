@@ -126,11 +126,11 @@ const UploadDocuments = () => {
         <div className="h-full overflow-y-auto px-4 sm:px-6 py-6 sm:py-8">
             <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-8">
-                    <div className="flex flex-row gap-5 items-center justify-center mb-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gray-200 flex items-center justify-center">
-                            <Upload className="w-8 h-8 text-custom-dark" />
+                    <div className="flex flex-row gap-2 sm:gap-5 items-center justify-center mb-4 ">
+                        <div className="w-14 sm:w-16 h-14 sm:h-16 ml-4 sm:ml-0 rounded-2xl bg-gray-200 flex items-center justify-center">
+                            <Upload className="w-6 sm:8 h-6 sm:8 text-custom-dark" />
                         </div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 text-center ">
                             Upload PDF Documents
                         </h1>
                     </div>

@@ -96,7 +96,7 @@ const MessageList: React.FC<MessageListProps> = ({
                                         isActive
                                             ? "text-gray-700 font-medium"
                                             : isCompleted
-                                              ? "text-gray-600 line-through"
+                                              ? "text-gray-600 "
                                               : "text-gray-500"
                                     }`}
                                 >
@@ -131,13 +131,13 @@ const MessageList: React.FC<MessageListProps> = ({
                         {/* Message bubble */}
                         <div className="max-w-[75%] sm:max-w-[70%] flex flex-col">
                             <div
-                                className={`px-4 py-3 rounded-2xl ${
+                                className={`px-4 py-2.5 rounded-2xl ${
                                     isUser
                                         ? "bg-custom-dark text-white"
                                         : "bg-gray-100 text-gray-800"
                                 }`}
                             >
-                                <p className="text-sm sm:text-base whitespace-pre-wrap wrap-break-word">
+                                <p className="text-sm sm:text-[15px] whitespace-pre-wrap wrap-break-word">
                                     {message.content}
                                 </p>
                             </div>

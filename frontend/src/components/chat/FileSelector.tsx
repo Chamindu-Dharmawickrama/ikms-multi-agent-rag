@@ -102,27 +102,28 @@ const FileSelector = ({
                 className={`w-full px-4 py-3 bg-white border-2 rounded-lg transition-colors flex items-center justify-between gap-3 ${
                     locked
                         ? "border-gray-300 bg-gray-50 cursor-not-allowed"
-                        : "border-custom-dark- hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        : "border-custom-dark-less hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                 }`}
             >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                    {locked ? (
-                        <Lock className="w-5 h-5 text-gray-500 shrink-0" />
-                    ) : (
+                    {!locked && (
                         <FileText className="w-5 h-5 text-custom-dark shrink-0" />
                     )}
-                    <div className="flex-1 min-w-0 text-left">
+                    <div className="flex flex-row justify-between min-w-0 gap-2 flex-1">
                         {selectedFile ? (
                             <>
                                 <p
-                                    className={`text-sm font-medium truncate ${locked ? "text-gray-700" : "text-gray-900"}`}
+                                    className={`text-sm font-medium truncate text-left ${locked ? "text-gray-700" : "text-gray-900"}`}
                                 >
                                     {selectedFile.filename}
                                 </p>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 text-right flex items-center gap-1 justify-end">
                                     {locked
                                         ? "Locked to this file"
                                         : `Uploaded ${formatDate(selectedFile.uploaded_at)}`}
+                                    {locked && (
+                                        <Lock className="w-4 h-4 mb-1 ml-1 text-gray-500 shrink-0" />
+                                    )}
                                 </p>
                             </>
                         ) : (
@@ -132,6 +133,7 @@ const FileSelector = ({
                         )}
                     </div>
                 </div>
+
                 <div className="flex items-center gap-4 shrink-0">
                     {!locked && (
                         <button

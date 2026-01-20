@@ -4,6 +4,7 @@ from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 from typing import Optional
 from ..core.config import get_settings
+import psycopg
 
 # Global connection pool
 _connection_pool: Optional[ConnectionPool] = None
@@ -23,7 +24,9 @@ def get_connection_pool() -> ConnectionPool:
             conninfo=settings.database_url,
             min_size=2,
             max_size=10,
-            kwargs={"row_factory": dict_row}
+            kwargs={"row_factory": dict_row},
+            # Add connection check for auto-reconnect
+            check=ConnectionPool.check_connection,
         )
 
     return _connection_pool  

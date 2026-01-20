@@ -1,6 +1,6 @@
 import { useNavigation } from "../../contexts/NavigationContext";
 import Home from "./features/home/home";
-import Chat from "./features/chat/Chat";
+import Chat from "./features/chat/chat";
 import UploadDocuments from "./features/uploadDocuments/UploadDocuments";
 
 const Dashboard = () => {
@@ -20,7 +20,7 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="h-full bg-white p-8 border-3 border-gray-300 rounded-2xl overflow-hidden">
+        <div className="h-full bg-white px-8 py-4 border-3 border-gray-300 rounded-2xl overflow-hidden">
             {renderPage()}
         </div>
     );
