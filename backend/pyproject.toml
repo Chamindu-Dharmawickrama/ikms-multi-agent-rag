@@ -15,6 +15,7 @@ dependencies = [
     "langgraph[postgres]>=1.0.5",
     "pinecone-client>=6.0.0",
     "psycopg[binary,pool]>=3.3.2",
+    "pydantic-settings>=2.0.0",
     "pypdf>=6.5.0",
     "python-dotenv>=1.2.1",
     "python-multipart>=0.0.21",
