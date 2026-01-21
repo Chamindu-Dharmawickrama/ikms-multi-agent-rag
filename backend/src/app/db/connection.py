@@ -119,15 +119,15 @@ def init_database():
             cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_messages_timestamp 
                 ON messages(timestamp)
-            \"\"\")
+            """)
             
             # Performance optimization indexes
-            cursor.execute(\"\"\"
+            cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_conversations_updated_at 
                 ON conversations(updated_at DESC)
-            \"\"\")
+            """)
             
-            cursor.execute(\"\"\"
+            cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_conversations_active_file_id 
                 ON conversations(active_file_id)
             """)

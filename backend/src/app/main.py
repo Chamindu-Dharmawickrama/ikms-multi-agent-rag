@@ -82,7 +82,7 @@ allowed_origins = [origin for origin in allowed_origins if origin]
 
 # Add Railway.app domain pattern if deployed
 if os.getenv("RAILWAY_ENVIRONMENT"):
-    allowed_origins.append("*")  # Allow all origins in Railway for now
+    allowed_origins.append("*")  
 
 server.add_middleware(
     CORSMiddleware,
