@@ -18,7 +18,6 @@ const UploadDocuments = () => {
         (state: RootState) => state.file,
     );
 
-    // Clear file state after successful upload
     useEffect(() => {
         if (uploadSuccess) {
             setFile([]);
@@ -225,7 +224,6 @@ const UploadDocuments = () => {
                     </div>
                 )}
 
-                {/* Upload Button */}
                 {file.length > 0 && (
                     <div className="mt-6 flex justify-center">
                         <button

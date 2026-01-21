@@ -18,13 +18,11 @@ interface ChatState {
     activeFilename: string | null;
     isFileLocked: boolean; // true when viewing existing conversation
 
-    // Loading states
     creatingConversation: boolean;
     sendingMessage: boolean;
     loadingHistory: boolean;
     loadingConversations: boolean;
 
-    // Success/Error states
     conversationCreated: boolean;
     messageSent: boolean;
     error: string | null;
@@ -179,7 +177,6 @@ const chatSlice = createSlice({
 
     extraReducers: (builder) => {
         builder
-            // Create conversation
             .addCase(createConversation.pending, (state) => {
                 state.creatingConversation = true;
                 state.error = null;
@@ -201,7 +198,6 @@ const chatSlice = createSlice({
                 state.error = action.payload || "Failed to create conversation";
             })
 
-            // Send message
             .addCase(sendMessage.pending, (state) => {
                 state.sendingMessage = true;
                 state.error = null;
@@ -223,7 +219,6 @@ const chatSlice = createSlice({
                 state.error = action.payload || "Failed to send message";
             })
 
-            // Get conversation history
             .addCase(getConversationHistory.pending, (state) => {
                 state.loadingHistory = true;
                 state.error = null;
@@ -243,7 +238,6 @@ const chatSlice = createSlice({
                 state.error = action.payload || "Failed to load history";
             })
 
-            // Get all conversations
             .addCase(getAllConversations.pending, (state) => {
                 state.loadingConversations = true;
                 state.error = null;
@@ -260,7 +254,6 @@ const chatSlice = createSlice({
                 state.error = action.payload || "Failed to load conversations";
             })
 
-            // Delete conversation
             .addCase(deleteConversation.fulfilled, (state, action) => {
                 state.conversations = state.conversations.filter(
                     (conv) => conv.session_id !== action.payload.sessionId,

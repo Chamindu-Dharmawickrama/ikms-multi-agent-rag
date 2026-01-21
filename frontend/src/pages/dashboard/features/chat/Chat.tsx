@@ -66,7 +66,6 @@ const Chat = () => {
         <div className="h-full flex flex-col overflow-hidden">
             <ChatHeader onNewChat={handleNewChat} messageCount={messageCount} />
 
-            {/* File Selector */}
             <div className="px-4 sm:px-6 pt-2 pb-2">
                 <FileSelector
                     selectedFileId={activeFileId}
@@ -106,20 +105,6 @@ const Chat = () => {
                 )}
             </div>
 
-            {/* Selected File Info */}
-            {/* {activeFileId && activeFilename && (
-                <div className="mx-4 sm:mx-6 mb-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-[13px] text-blue-900">
-                        <span className="font-medium">📌 Chatting with:</span>{" "}
-                        {activeFilename}
-                        {isFileLocked && (
-                            <span className="ml-2 text-blue-900">(locked)</span>
-                        )}
-                    </p>
-                </div>
-            )} */}
-
-            {/* Error Message */}
             {error && (
                 <div className="mx-4 sm:mx-6 mb-2 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />

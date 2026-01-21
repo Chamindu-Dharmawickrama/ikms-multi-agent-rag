@@ -158,7 +158,6 @@ const FileSelector = ({
             {/* Dropdown List */}
             {isOpen && (
                 <>
-                    {/* Backdrop */}
                     <div
                         className="fixed inset-0 z-10"
                         onClick={() => setIsOpen(false)}
