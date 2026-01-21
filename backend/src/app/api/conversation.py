@@ -1,6 +1,6 @@
 """API endpoints for conversational multi-turn QA."""
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Response
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from ..services.conversation_service import get_conversation_service
@@ -282,11 +282,11 @@ async def delete_conversation(session_id: str) -> DeleteConversationResponse:
     response_model=List[ConversationSummary],
     status_code=status.HTTP_200_OK
 )
-async def list_conversations(limit: Optional[int] = None) -> List[ConversationSummary]:
+async def list_conversations(response: Response, limit: Optional[int] = 50) -> List[ConversationSummary]:
     """List all active conversations with metadata.
     
     Args:
-        limit: Optional limit on number of conversations to return.
+        limit: Optional limit on number of conversations to return (default: 50 for performance).
     
     Returns:
         List of conversation summaries.
@@ -295,6 +295,10 @@ async def list_conversations(limit: Optional[int] = None) -> List[ConversationSu
 
     try:
         conversations = service.list_conversations(limit=limit)
+        
+        # Add cache control headers to reduce unnecessary requests
+        response.headers["Cache-Control"] = "private, max-age=10"
+        
         return [ConversationSummary(**conv) for conv in conversations]
     
     except ConnectionError as e:

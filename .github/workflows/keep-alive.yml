@@ -1,0 +1,29 @@
+name: Keep Railway App Alive
+
+on:
+    schedule:
+        # Run every 5 minutes
+        - cron: "*/5 * * * *"
+    workflow_dispatch: # Allow manual triggers
+
+jobs:
+    ping:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Ping Railway App
+              run: |
+                  echo "Pinging Railway app..."
+                  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -m 10 ${{ secrets.RAILWAY_APP_URL }}/health)
+
+                  if [ "$RESPONSE" -eq 200 ]; then
+                    echo " Ping successful - Status: $RESPONSE"
+                  else
+                    echo " Unexpected status: $RESPONSE"
+                    exit 1
+                  fi
+
+            - name: Log Result
+              if: always()
+              run: |
+                  echo "Timestamp: $(date)"
+                  echo "Keep-alive ping completed"

@@ -187,22 +187,18 @@ class ConversationService:
 
         conversations = self.db_service.list_conversations(limit=limit)
 
-        result = []
-        for conv in conversations:
-            filename = None
-            if conv.active_file_id:
-                file_record = self.db_service.get_file_record(conv.active_file_id)
-                if file_record:
-                    filename = file_record.filename
-            
-            result.append({
+    
+        result = [
+            {
                 "session_id": conv.session_id,
                 "created_at": conv.created_at.isoformat(),
                 "updated_at": conv.updated_at.isoformat(),
                 "message_count": conv.message_count,
                 "active_file_id": conv.active_file_id,
-                "filename": filename
-            })
+                "filename": conv.filename 
+            }
+            for conv in conversations
+        ]
         
         return result
     

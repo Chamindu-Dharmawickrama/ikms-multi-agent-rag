@@ -231,10 +231,19 @@ class ConversationDatabaseService:
         try:
             with get_db_connection() as connection:
                 with connection.cursor() as cursor:
+                    # Optimized query with LEFT JOIN to get filenames in single query
                     query = """
-                        SELECT session_id, created_at, updated_at, message_count,active_file_id, metadata
-                        FROM conversations
-                        ORDER BY updated_at DESC
+                        SELECT 
+                            c.session_id, 
+                            c.created_at, 
+                            c.updated_at, 
+                            c.message_count,
+                            c.active_file_id, 
+                            c.metadata,
+                            f.filename
+                        FROM conversations c
+                        LEFT JOIN files f ON c.active_file_id = f.file_id
+                        ORDER BY c.updated_at DESC
                     """
                     
                     if limit:
@@ -250,7 +259,8 @@ class ConversationDatabaseService:
                             updated_at=row["updated_at"],
                             message_count=row["message_count"],
                             active_file_id=row["active_file_id"],
-                            metadata=row["metadata"]
+                            metadata=row["metadata"],
+                            filename=row.get("filename") 
                         )
                         for row in conversations_rows
                     ]  

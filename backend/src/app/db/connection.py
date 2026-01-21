@@ -5,6 +5,7 @@ from psycopg_pool import ConnectionPool
 from typing import Optional
 from ..core.config import get_settings
 import psycopg
+import os
 
 # Global connection pool
 _connection_pool: Optional[ConnectionPool] = None
@@ -19,14 +20,20 @@ def get_connection_pool() -> ConnectionPool:
 
     global _connection_pool
     if _connection_pool is None:
-        settings = get_settings() 
+        settings = get_settings()
+        
+        min_pool_size = int(os.getenv("DB_POOL_MIN_SIZE", "1"))
+        max_pool_size = int(os.getenv("DB_POOL_MAX_SIZE", "5"))
+        
         _connection_pool = ConnectionPool(
             conninfo=settings.database_url,
-            min_size=2,
-            max_size=10,
+            min_size=min_pool_size,
+            max_size=max_pool_size,
             kwargs={"row_factory": dict_row},
             # Add connection check for auto-reconnect
             check=ConnectionPool.check_connection,
+            # Add timeout for faster failure detection
+            timeout=5.0,
         )
 
     return _connection_pool  
@@ -112,6 +119,17 @@ def init_database():
             cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_messages_timestamp 
                 ON messages(timestamp)
+            \"\"\")
+            
+            # Performance optimization indexes
+            cursor.execute(\"\"\"
+                CREATE INDEX IF NOT EXISTS idx_conversations_updated_at 
+                ON conversations(updated_at DESC)
+            \"\"\")
+            
+            cursor.execute(\"\"\"
+                CREATE INDEX IF NOT EXISTS idx_conversations_active_file_id 
+                ON conversations(active_file_id)
             """)
             
             connection.commit()

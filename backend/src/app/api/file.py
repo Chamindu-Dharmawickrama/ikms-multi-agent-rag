@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 from pathlib import Path
 from fastapi import  File, HTTPException, UploadFile, status
 from ..services.indexing_service import index_pdf_file
@@ -70,7 +70,7 @@ async def index_pdf(file : UploadFile = File(...)) -> IndexResponse:
 
 # Get list of all uploaded files
 @file_router.get("/", response_model=FilesListResponse, status_code=status.HTTP_200_OK)
-async def list_files() -> FilesListResponse:
+async def list_files(response: Response) -> FilesListResponse:
     """Get a list of all uploaded files.
     
     Returns:
@@ -89,6 +89,9 @@ async def list_files() -> FilesListResponse:
             )
             for file in files
         ]
+        
+        # Add cache control headers
+        response.headers["Cache-Control"] = "private, max-age=30"
         
         return FilesListResponse(
             files=file_items,
