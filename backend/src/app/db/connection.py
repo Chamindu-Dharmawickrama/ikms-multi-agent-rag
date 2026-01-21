@@ -20,6 +20,7 @@ def get_connection_pool() -> ConnectionPool:
     global _connection_pool
     if _connection_pool is None:
         settings = get_settings() 
+        print(f"Creating connection pool to database...")
         _connection_pool = ConnectionPool(
             conninfo=settings.database_url,
             min_size=2,
@@ -27,7 +28,9 @@ def get_connection_pool() -> ConnectionPool:
             kwargs={"row_factory": dict_row},
             # Add connection check for auto-reconnect
             check=ConnectionPool.check_connection,
+            timeout=30,  # 30 second timeout
         )
+        print(f"Connection pool created successfully!")
 
     return _connection_pool  
 

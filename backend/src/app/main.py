@@ -13,21 +13,35 @@ from .db.checkpointer import get_postgres_checkpointer
 async def lifespan(app: FastAPI):
     """Application lifespan manager for startup and shutdown events."""
     print("Starting application...")
+    print(f"DATABASE_URL configured: {bool(os.getenv('DATABASE_URL'))}")
+    print(f"OPENAI_API_KEY configured: {bool(os.getenv('OPENAI_API_KEY'))}")
+    print(f"PINECONE_API_KEY configured: {bool(os.getenv('PINECONE_API_KEY'))}")
+    
     try:
+        print("Initializing database...")
         init_database()
-        # creates LangGraph tables
+        print("Database initialized successfully!")
+        
+        print("Creating LangGraph checkpointer...")
         get_postgres_checkpointer()
+        print("Checkpointer created successfully!")
     except Exception as e:
-        print(f"Database initialization failed!!: {e}")
-        raise
+        print(f"ERROR during startup: {e}")
+        import traceback
+        traceback.print_exc()
+        # Don't raise - allow app to start even if DB fails
+        print("WARNING: Continuing without database initialization")
 
     #before yield → startup
     #after yield → shutdown    
     yield
 
     print("Shutting down application...")
-    close_connection_pool()
-    print("Database connections closed!")
+    try:
+        close_connection_pool()
+        print("Database connections closed!")
+    except Exception as e:
+        print(f"Error closing connections: {e}")
 
 
 server = FastAPI(
