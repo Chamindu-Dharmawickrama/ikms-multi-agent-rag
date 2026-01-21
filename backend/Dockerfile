@@ -27,4 +27,4 @@ RUN mkdir -p data/uploads
 EXPOSE 8000
 
 # Start command - Use shell form to properly expand PORT variable
-CMD uvicorn src.app.main:server --host 0.0.0.0 --port $PORT
+CMD sh -c "uvicorn src.app.main:server --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --timeout-keep-alive 30"

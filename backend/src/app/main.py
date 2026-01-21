@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from .services.indexing_service import index_pdf_file
@@ -6,55 +7,46 @@ from .api.ask import ask_router
 from .api.file import file_router
 from .api.conversation import conversation_router
 from contextlib import asynccontextmanager
-from .db.connection import init_database , close_connection_pool
-from .db.checkpointer import get_postgres_checkpointer
+from .db.connection import init_database, close_connection_pool
+from .db.checkpointer import get_postgres_checkpointer, close_checkpointer
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager for startup and shutdown events."""
     import sys
     print("=" * 60)
     print("Starting application...")
     print(f"Python version: {sys.version}")
     print(f"Working directory: {os.getcwd()}")
     print("=" * 60)
-    
+
     try:
-        # Test environment variables
         from .core.config import get_settings
         settings = get_settings()
-        print(f"✓ Configuration loaded successfully")
-        print(f"  - Database URL: {settings.database_url[:20]}...")
-        print(f"  - OpenAI Model: {settings.openai_model_name}")
-        print(f"  - Pinecone Index: {settings.pinecone_index_name}")
-        
-        # Initialize database
+
         print("Initializing database...")
         init_database()
         print("Database initialized")
-        
-        # Initialize LangGraph checkpointer
+
         print("Initializing LangGraph checkpointer...")
         get_postgres_checkpointer()
         print("LangGraph checkpointer initialized")
-        
-        print("=" * 60)
-        print("Application startup complete!")
-        print("=" * 60)
-        
+    
+        from .core.agents.graph import get_qa_graph 
+        get_qa_graph()
+        print("QA graph warmed up")
+
+        print("Startup complete!")
     except Exception as e:
-        print("=" * 60)
-        print(f"STARTUP FAILED: {e}")
-        print("=" * 60)
         import traceback
+        print(f"STARTUP FAILED: {e}")
         traceback.print_exc()
         raise
 
-    #before yield → startup
-    #after yield → shutdown    
     yield
 
     print("Shutting down application...")
+    close_checkpointer()       
     close_connection_pool()
     print("Database connections closed!")
 

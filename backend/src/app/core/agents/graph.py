@@ -5,6 +5,8 @@ from functools import lru_cache
 from langgraph.graph import StateGraph
 from langgraph.constants import START, END
 
+from .utils import is_connection_closed_error, reset_graph_cache
+
 from .state import QAState
 from .agents import retrieval_node, summarization_node, verification_node, memory_summarizer_node
 from ...db.checkpointer import get_postgres_checkpointer
@@ -153,6 +155,13 @@ def run_qa_flow_with_history(question: str, thread_id: str, file_id: str = None)
            if previous_summary:
               print(f"-- Loaded previous summary (length: {len(previous_summary)} chars)")
     except Exception as e:
+        if is_connection_closed_error(e):
+            reset_graph_cache()
+            graph = get_qa_graph()
+            previous_state = graph.get_state(config)
+        else:
+            raise
+
         print(f"-- No previous history found for thread {thread_id}: {e}")   
 
     # Initial state with preserved conversation history and summary

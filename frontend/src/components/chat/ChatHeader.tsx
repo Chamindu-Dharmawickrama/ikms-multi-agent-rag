@@ -12,7 +12,7 @@ const ChatHeader: React.FC<ChatHeaderProps> = ({
 }) => {
     return (
         <div className="flex items-center justify-between px-4 mt-0 sm:px-6 pb-3 border-b border-gray-300 bg-white ">  
-            <div className="flex items-center gap-3 ml-7 sm:ml-0 ">
+            <div className="flex items-center gap-3 ml-8 sm:ml-0 ">
                 <div className="hidden sm:flex w-10 h-10 rounded-xl bg-gray-200 items-center justify-center ">
                     <MessageSquare className="w-6 h-6 text-custom-dark" />
                 </div>
