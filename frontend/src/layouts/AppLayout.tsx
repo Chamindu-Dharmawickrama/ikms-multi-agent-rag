@@ -8,7 +8,7 @@ const AppLayout = () => {
             <Sidebar />
 
             {/* Main Content */}
-            <main className="flex-1 overflow-hidden sm:p-6 p-0 ">
+            <main className="flex-1 overflow-hidden md:p-6 p-0 ">
                 <Dashboard />
             </main>
         </div>

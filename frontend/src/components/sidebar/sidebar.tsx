@@ -112,10 +112,10 @@ const Sidebar = () => {
         <>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="md:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-gray-800  text-white hover:bg-gray-700 transition-colors shadow-lg"
+                className="md:hidden fixed top-4.5 left-3 z-50 p-2 rounded-lg   text-custom-dark-more hover:bg-gray-700 transition-colors "
                 aria-label="Toggle menu"
             >
-                {isOpen ? <X size={22} /> : <Menu size={24} />}
+                {isOpen ? <X className="text-white" size={26} /> : <Menu size={26} />}
             </button>
 
             {isOpen && (

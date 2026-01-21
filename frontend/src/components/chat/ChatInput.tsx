@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Send, Loader2 } from "lucide-react";
+import { useSelector } from "react-redux";
+import type { RootState } from "../../store/store";
 
 interface ChatInputProps {
     onSendMessage: (message: string) => void;
@@ -21,6 +23,8 @@ const ChatInput: React.FC<ChatInputProps> = ({
             setMessage("");
         }
     };
+    
+    const { sendingMessage } = useSelector((state: RootState) => state.chat);
 
     const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
@@ -47,7 +51,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                     className="p-3 bg-custom-dark hover:bg-custom-dark-more disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
                     aria-label="Send message"
                 >
-                    {disabled ? (
+                    {disabled && sendingMessage ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
                         <Send className="w-5 h-5" />
