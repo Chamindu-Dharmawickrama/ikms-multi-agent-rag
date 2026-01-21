@@ -1,7 +1,6 @@
 import os
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from .services.indexing_service import index_pdf_file
 from fastapi.responses import JSONResponse
 from .api.ask import ask_router
 from .api.file import file_router

@@ -94,12 +94,6 @@ def run_qa_flow(question : str) -> Dict[str, Any]:
         "conversation_summary": None,
     }
 
-    # 1. Create an internal execution context
-    # 2. Store initial_state as the current graph state
-    # 3. Look for START edge
-    # 4. Find the first node connected to START
-    # 5. Call that node with the current state
-
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}
 
     final_state = graph.invoke(initial_state, config)

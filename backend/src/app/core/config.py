@@ -9,21 +9,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
-    # gpt-4o-mini
-
-    # OpenAI Configuration
     openai_api_key: str
     openai_model_name: str = "gpt-5-mini"
     openai_embedding_model_name: str = "text-embedding-3-small"
 
-    # Pinecone Configuration
     pinecone_api_key: str
     pinecone_index_name: str
 
-    # PostgreSQL Configuration (Neon Database)
     database_url: str
 
-    # Retrieval Configuration
     retrieval_k: int = 4
 
     model_config = SettingsConfigDict(

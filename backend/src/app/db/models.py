@@ -18,7 +18,7 @@ class MessageDB(BaseModel):
     
     id: Optional[int] = None
     session_id: str
-    role: str  # "USER" or "Assistant"
+    role: str  
     content: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     metadata: Dict[str, Any] = Field(default_factory=dict) 

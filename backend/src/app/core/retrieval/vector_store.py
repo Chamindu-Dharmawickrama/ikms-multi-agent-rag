@@ -106,5 +106,4 @@ def index_documents(docs,file_id: str = None, filename: str = None) -> int:
     # add chunks to the vector store 
     vector_store = _get_vector_store()
     vector_store.add_documents(texts)
-    # return the chunks count 
     return len(texts)

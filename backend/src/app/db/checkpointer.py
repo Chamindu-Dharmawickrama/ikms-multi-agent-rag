@@ -5,7 +5,6 @@ import os
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool
 from langgraph.checkpoint.postgres import PostgresSaver
-import psycopg
 
 from ..core.config import get_settings
 
@@ -17,7 +16,7 @@ def get_checkpoint_pool() -> ConnectionPool:
     if _checkpoint_pool is None:
         settings = get_settings()
 
-        # Keep small for Neon. Start with 1–3.
+        # for Neon ( 1–3 ).
         max_size = int(os.getenv("CHECKPOINT_POOL_MAX_SIZE", "3"))
 
         _checkpoint_pool = ConnectionPool(
@@ -26,7 +25,7 @@ def get_checkpoint_pool() -> ConnectionPool:
             max_size=max_size,
             timeout=10.0,
 
-            # recycle connections so stale ones don't live forever
+            # recycle connections... so stale ones don't live forever
             max_lifetime=1800, 
             max_idle=300,       
             reconnect_timeout=300,

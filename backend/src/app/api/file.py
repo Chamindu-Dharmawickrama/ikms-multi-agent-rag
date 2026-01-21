@@ -46,7 +46,7 @@ async def index_pdf(file : UploadFile = File(...)) -> IndexResponse:
             detail="Only PDF files are supported."
         )
 
-    # base llocation that file need to go
+    # base location that file need to go
     upload_dir = Path("data/uploads")
     upload_dir.mkdir(parents=True, exist_ok=True)
 

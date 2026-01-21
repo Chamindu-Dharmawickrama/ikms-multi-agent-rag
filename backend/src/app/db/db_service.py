@@ -122,7 +122,6 @@ class ConversationDatabaseService:
 
                     message_row = cursor.fetchone()
 
-                    # update the conversation's message count
                     cursor.execute("""
                         UPDATE conversations
                         SET message_count = message_count + 1,

@@ -239,7 +239,6 @@ def memory_summarizer_node(state: QAState) -> dict:
         print("-- memory_summarizer_node: No history to summarize")
         return {}
     
-    # find how many msg are their
     import re
     user_pattern = r'(?m)^User:\s'
     user_turns = re.split(user_pattern, conversation_history)
@@ -247,10 +246,7 @@ def memory_summarizer_node(state: QAState) -> dict:
     user_turns = [t.strip() for t in user_turns if t.strip()]
     turn_count = len(user_turns) 
 
-    print(f"-- memory_summarizer_node: Counted {turn_count} turns using User: markers")
-    
-    #turn_count = conversation_history.count('User:') + conversation_history.count('Assistant:')
-    #turn_count = turn_count // 2  
+    print(f"-- memory_summarizer_node: Counted {turn_count} turns using User: markers") 
         
     SUMMARIZATION_THRESHOLD = 5
     RECENT_TURNS_TO_KEEP = 3

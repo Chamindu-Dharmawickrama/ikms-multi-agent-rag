@@ -135,6 +135,7 @@ def init_database():
             connection.commit()
             print("Database connected and tables initialized successfully")
 
+
 # close the db connection (When server shutdown)
 def close_connection_pool():
     """Close the connection pool gracefully.

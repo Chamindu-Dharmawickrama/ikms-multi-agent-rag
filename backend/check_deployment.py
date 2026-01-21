@@ -10,11 +10,11 @@ from pathlib import Path
 
 def check_env_file():
     """Check if .env file exists and has required variables."""
-    print("\n🔍 Checking .env file...")
+    print("\n Checking .env file...")
     
     env_path = Path(".env")
     if not env_path.exists():
-        print("  ⚠️  Warning: .env file not found (Railway uses Variables instead)")
+        print("    Warning: .env file not found (Railway uses Variables instead)")
         return True
     
     required_vars = [
@@ -33,15 +33,15 @@ def check_env_file():
             missing.append(var)
     
     if missing:
-        print(f"  ❌ Missing variables: {', '.join(missing)}")
+        print(f"   Missing variables: {', '.join(missing)}")
         return False
     
-    print("  ✅ .env file looks good")
+    print("   .env file looks good")
     return True
 
 def check_dependencies():
     """Check if all required packages are importable."""
-    print("\n🔍 Checking Python dependencies...")
+    print("\n Checking Python dependencies...")
     
     required_packages = {
         "fastapi": "FastAPI",
@@ -56,7 +56,7 @@ def check_dependencies():
     for package, name in required_packages.items():
         try:
             __import__(package)
-            print(f"  ✅ {name}")
+            print(f"   {name}")
         except ImportError:
             print(f"  {name} not installed")
             missing.append(package)
@@ -70,7 +70,7 @@ def check_dependencies():
 
 def check_files():
     """Check if all required files exist."""
-    print("\n🔍 Checking required files...")
+    print("\n Checking required files...")
     
     required_files = [
         "requirements.txt",
@@ -94,7 +94,7 @@ def check_files():
 
 def check_dockerfile():
     """Verify Dockerfile has correct CMD."""
-    print("\n🔍 Checking Dockerfile configuration...")
+    print("\n Checking Dockerfile configuration...")
     
     with open("Dockerfile") as f:
         content = f.read()
@@ -138,7 +138,6 @@ def main():
     print("Railway Deployment Pre-flight Checks")
     print("=" * 60)
     
-    # Change to backend directory if needed
     if Path("backend").exists():
         os.chdir("backend")
         print("\nChanged to backend directory")

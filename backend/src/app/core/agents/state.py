@@ -2,7 +2,6 @@
 
 from typing import TypedDict
 
-
 class QAState(TypedDict):
     """State schema for the linear multi-agent QA flow.
 

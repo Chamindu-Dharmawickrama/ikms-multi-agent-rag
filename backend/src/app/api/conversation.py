@@ -148,14 +148,6 @@ async def ask_in_conversation(
 
         # ** unpacks a dictionary into keyword arguments
         return ConversationQuestionResponse(**result)
-        # return ConversationQuestionResponse(
-        #     session_id=session_id,
-        #     answer=result.get("answer", ""),
-        #     context=result.get("context", ""),
-        #     message_count=result.get("message_count", 0),
-        #     conversation_history=result.get("conversation_history", "")
-        # )
-
 
     except ConnectionError as e:
         raise HTTPException(

@@ -126,7 +126,6 @@ class ConversationService:
         if not conversation:
             raise ValueError(f"Session {session_id} not found")
         
-        # get the messages for the session id
         messages = self.db_service.get_messages(session_id, limit)
 
         # get the LangGraph state
