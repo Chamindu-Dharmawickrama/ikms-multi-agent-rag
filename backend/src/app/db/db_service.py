@@ -10,12 +10,14 @@ class ConversationDatabaseService:
     """Service for managing conversations and messages in PostgreSQL."""
 
     # make a new conversation on the db
-    def create_conversation(self, session_id: str, metadata: Optional[Dict[str,any]]= None, active_file_id:Optional[str]= None) -> ConversationDB:
+    def create_conversation(self, session_id: str, metadata: Optional[Dict[str,any]]= None, active_file_id:Optional[str]= None, user_id: Optional[str] = None) -> ConversationDB:
         """Create a new conversation in the database.
         
         Args:
             session_id: Unique identifier for the conversation.
             metadata: Optional metadata to store with the conversation.
+            active_file_id: Optional file ID to associate with the conversation.
+            user_id: User ID who owns this conversation.
             
         Returns:
             ConversationDB instance.
@@ -27,10 +29,10 @@ class ConversationDatabaseService:
             with get_db_connection() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute("""
-                        INSERT INTO conversations (session_id, metadata,active_file_id)
-                        VALUES (%s, %s, %s)
-                        RETURNING session_id, created_at, updated_at, message_count,active_file_id, metadata            
-                    """, (session_id, json.dumps(metadata or {}),active_file_id))
+                        INSERT INTO conversations (session_id, metadata, active_file_id, user_id)
+                        VALUES (%s, %s, %s, %s)
+                        RETURNING session_id, created_at, updated_at, message_count, active_file_id, user_id, metadata            
+                    """, (session_id, json.dumps(metadata or {}), active_file_id, user_id))
 
                     conversation_row = cursor.fetchone()
                     # permanent save the data on db
@@ -42,6 +44,7 @@ class ConversationDatabaseService:
                         updated_at=conversation_row["updated_at"],
                         message_count=conversation_row["message_count"],
                         active_file_id=conversation_row["active_file_id"],
+                        user_id=conversation_row["user_id"],
                         metadata=conversation_row["metadata"]
                     )
         except Exception as e:
@@ -65,7 +68,7 @@ class ConversationDatabaseService:
             with get_db_connection() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute("""
-                        SELECT session_id, created_at, updated_at, message_count, active_file_id, metadata
+                        SELECT session_id, created_at, updated_at, message_count, active_file_id, user_id, metadata
                         FROM conversations
                         WHERE session_id = %s                  
                     """, (session_id,))
@@ -80,6 +83,7 @@ class ConversationDatabaseService:
                         updated_at=conversation_row["updated_at"],
                         message_count=conversation_row["message_count"],
                         active_file_id=conversation_row["active_file_id"],
+                        user_id=conversation_row["user_id"],
                         metadata=conversation_row["metadata"]
                     )
 
@@ -217,11 +221,12 @@ class ConversationDatabaseService:
 
 
     # get lsit of conservations 
-    def list_conversations(self, limit: Optional[int] = None) -> List[ConversationDB]:
-        """List all conversations.
+    def list_conversations(self, limit: Optional[int] = None, user_id: Optional[str] = None) -> List[ConversationDB]:
+        """List all conversations, optionally filtered by user.
         
         Args:
             limit: Optional limit on number of conversations to return.
+            user_id: Optional user ID to filter conversations.
             
         Returns:
             List of ConversationDB instances.
@@ -237,18 +242,26 @@ class ConversationDatabaseService:
                             c.created_at, 
                             c.updated_at, 
                             c.message_count,
-                            c.active_file_id, 
+                            c.active_file_id,
+                            c.user_id, 
                             c.metadata,
                             f.filename
                         FROM conversations c
                         LEFT JOIN files f ON c.active_file_id = f.file_id
-                        ORDER BY c.updated_at DESC
                     """
                     
+                    params = []
+                    if user_id:
+                        query += " WHERE c.user_id = %s"
+                        params.append(user_id)
+                    
+                    query += " ORDER BY c.updated_at DESC"
+                    
                     if limit:
-                        query += f" LIMIT {limit}"
+                        query += " LIMIT %s"
+                        params.append(limit)
 
-                    cursor.execute(query)
+                    cursor.execute(query, params if params else None)
                     conversations_rows = cursor.fetchall()
 
                     return [
@@ -258,6 +271,7 @@ class ConversationDatabaseService:
                             updated_at=row["updated_at"],
                             message_count=row["message_count"],
                             active_file_id=row["active_file_id"],
+                            user_id=row["user_id"],
                             metadata=row["metadata"],
                             filename=row.get("filename") 
                         )
@@ -269,13 +283,14 @@ class ConversationDatabaseService:
         
 
     # create file details
-    def create_file_record(self, file_id: str, filename: str, file_path: str, metadata: Optional[Dict[str, Any]] = None) -> FileDB:
+    def create_file_record(self, file_id: str, filename: str, file_path: str, user_id: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None) -> FileDB:
         """Create a file record in the database.
         
         Args:
             file_id: Unique identifier for the file.
             filename: Original filename.
             file_path: Path where the file is stored.
+            user_id: User ID who uploaded the file.
             metadata: Optional metadata.
             
         Returns:
@@ -285,10 +300,10 @@ class ConversationDatabaseService:
             with get_db_connection() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute("""
-                        INSERT INTO files (file_id, filename, file_path, metadata)
-                        VALUES (%s, %s, %s, %s)
-                        RETURNING file_id, filename, file_path, uploaded_at, metadata
-                    """, (file_id, filename, file_path, json.dumps(metadata or {})))
+                        INSERT INTO files (file_id, filename, file_path, user_id, metadata)
+                        VALUES (%s, %s, %s, %s, %s)
+                        RETURNING file_id, filename, file_path, user_id, uploaded_at, metadata
+                    """, (file_id, filename, file_path, user_id, json.dumps(metadata or {})))
                     
                     file_row = cursor.fetchone()
                     connection.commit()
@@ -297,6 +312,7 @@ class ConversationDatabaseService:
                         file_id=file_row["file_id"],
                         filename=file_row["filename"],
                         file_path=file_row["file_path"],
+                        user_id=file_row["user_id"],
                         uploaded_at=file_row["uploaded_at"],
                         metadata=file_row["metadata"]
                     )
@@ -318,7 +334,7 @@ class ConversationDatabaseService:
             with get_db_connection() as connection:
                 with connection.cursor() as cursor:
                     cursor.execute("""
-                        SELECT file_id, filename, file_path, uploaded_at, metadata
+                        SELECT file_id, filename, file_path, user_id, uploaded_at, metadata
                         FROM files
                         WHERE file_id = %s
                     """, (file_id,))
@@ -331,6 +347,7 @@ class ConversationDatabaseService:
                         file_id=file_row["file_id"],
                         filename=file_row["filename"],
                         file_path=file_row["file_path"],
+                        user_id=file_row["user_id"],
                         uploaded_at=file_row["uploaded_at"],
                         metadata=file_row["metadata"]
                     )
@@ -364,13 +381,13 @@ class ConversationDatabaseService:
             raise Exception(f"Database error setting conversation file: {str(e)}") from e  
         
 
-    # All the files that have been uploaded
-    def list_files(self, limit: Optional[int] = None) -> List[FileDB]:
-        """List all uploaded files.
-        
+    def list_files(self, limit: Optional[int] = None, user_id: Optional[str] = None) -> List[FileDB]:
+        """List all uploaded files, optionally filtered by user.
+
         Args:
             limit: Optional limit on number of files to return.
-            
+            user_id: Optional user ID to filter files.
+
         Returns:
             List of FileDB instances ordered by upload date (newest first).
         """
@@ -378,15 +395,22 @@ class ConversationDatabaseService:
             with get_db_connection() as connection:
                 with connection.cursor() as cursor:
                     query = """
-                        SELECT file_id, filename, file_path, uploaded_at, metadata
+                        SELECT file_id, filename, file_path, user_id, uploaded_at, metadata
                         FROM files
-                        ORDER BY uploaded_at DESC
                     """
                     
-                    if limit:
-                        query += f" LIMIT {limit}"
+                    params = []
+                    if user_id:
+                        query += " WHERE user_id = %s"
+                        params.append(user_id)
                     
-                    cursor.execute(query)
+                    query += " ORDER BY uploaded_at DESC"
+                    
+                    if limit:
+                        query += " LIMIT %s"
+                        params.append(limit)
+                    
+                    cursor.execute(query, params if params else None)
                     file_rows = cursor.fetchall()
                     
                     return [
@@ -394,13 +418,17 @@ class ConversationDatabaseService:
                             file_id=row["file_id"],
                             filename=row["filename"],
                             file_path=row["file_path"],
+                            user_id=row["user_id"],
                             uploaded_at=row["uploaded_at"],
                             metadata=row["metadata"]
                         )
                         for row in file_rows
                     ]
         except Exception as e:
-            raise Exception(f"Database error listing files: {str(e)}") from e          
+            raise Exception(f"Database error listing files: {str(e)}") from e   
+
+
+   
                 
 
 # singleton instance

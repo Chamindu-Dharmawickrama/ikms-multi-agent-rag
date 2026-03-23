@@ -1,6 +1,5 @@
 import { useNavigation } from "../../contexts/NavigationContext";
 import Chat from "./features/chat/Chat";
-import Home from "./features/home/home";
 
 import UploadDocuments from "./features/uploadDocuments/UploadDocuments";
 
@@ -9,14 +8,12 @@ const Dashboard = () => {
 
     const renderPage = () => {
         switch (currentPage) {
-            case "home":
-                return <Home />;
             case "chat":
                 return <Chat />;
             case "upload":
                 return <UploadDocuments />;
             default:
-                return <Home />;
+                return <Chat />;
         }
     };
 

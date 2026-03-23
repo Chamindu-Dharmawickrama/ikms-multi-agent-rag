@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import {
     Menu,
     X,
-    Home,
     Bot,
     Upload,
     MessageSquare,
     Trash2,
+    LogOut,
+    User,
 } from "lucide-react";
 import { useNavigation } from "../../contexts/NavigationContext";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import type { RootState, AppDispatch } from "../../store/store";
 import {
     getAllConversations,
@@ -18,14 +20,18 @@ import {
     clearMessages,
     getConversationHistory,
 } from "../../store/chat/chatSlice";
+import { logout } from "../../store/auth/authSlice";
 
 const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { currentPage, setCurrentPage } = useNavigation();
     const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
 
     const { conversations, loadingConversations, currentSessionId } =
         useSelector((state: RootState) => state.chat);
+
+    const { user } = useSelector((state: RootState) => state.auth);
 
     useEffect(() => {
         if (currentPage === "chat") {
@@ -115,7 +121,11 @@ const Sidebar = () => {
                 className="md:hidden fixed top-4.5 left-3 z-50 p-2 rounded-lg   text-custom-dark-more hover:bg-gray-700 transition-colors "
                 aria-label="Toggle menu"
             >
-                {isOpen ? <X className="text-white" size={26} /> : <Menu size={26} />}
+                {isOpen ? (
+                    <X className="text-white" size={26} />
+                ) : (
+                    <Menu size={26} />
+                )}
             </button>
 
             {isOpen && (
@@ -154,7 +164,7 @@ const Sidebar = () => {
 
                     {/* Navigations */}
                     <nav className="flex flex-col mt-8 md:mt-4 space-y-4 px-4">
-                        <button
+                        {/* <button
                             className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 cursor-pointer ${
                                 currentPage === "home"
                                     ? "bg-gray-700"
@@ -167,7 +177,7 @@ const Sidebar = () => {
                         >
                             <Home size={16} />
                             <span className="text-[15px]">Home</span>
-                        </button>
+                        </button> */}
                         <button
                             className={`text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 cursor-pointer ${
                                 currentPage === "chat"
@@ -283,16 +293,53 @@ const Sidebar = () => {
                         </div>
                     )}
 
-                    <div className="mt-auto mb-5 px-6 shrink-0">
-                        <a
-                            href="#"
-                            className="text-sm mb-4 block hover:text-gray-300 transition-colors"
+                    <div className="mt-auto mb-5 px-4 shrink-0 space-y-3">
+                        {/* User Profile */}
+                        {user && (
+                            <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-800 border border-gray-700">
+                                {user.picture ? (
+                                    <img
+                                        src={`${import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"}/auth/profile-image/${user.user_id}`}
+                                        alt={user.name || user.email}
+                                        className="w-10 h-10 rounded-full"
+                                        onError={(e) => {
+                                            // Fallback to default avatar on error
+                                            e.currentTarget.style.display =
+                                                "none";
+                                            e.currentTarget.nextElementSibling?.classList.remove(
+                                                "hidden",
+                                            );
+                                        }}
+                                    />
+                                ) : null}
+                                <div
+                                    className={`w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center ${user.picture ? "hidden" : ""}`}
+                                >
+                                    <User className="w-5 h-5 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-white truncate">
+                                        {user.name || "User"}
+                                    </p>
+                                    <p className="text-xs text-gray-400 truncate">
+                                        {user.email}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Logout Button */}
+                        <button
+                            onClick={() => {
+                                dispatch(logout());
+                                navigate("/");
+                                setIsOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-2 rounded-lg transition-colors flex items-center gap-3 cursor-pointer hover:bg-red-600/20 text-red-400 hover:text-red-300"
                         >
-                            FAQ
-                        </a>
-                        <div className="border-t text-gray-400 border-gray-700 pt-3">
-                            Free Plan
-                        </div>
+                            <LogOut size={16} />
+                            <span className="text-[15px]">Logout</span>
+                        </button>
                     </div>
                 </div>
             </aside>

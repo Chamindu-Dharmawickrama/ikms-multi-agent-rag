@@ -19,6 +19,12 @@ class Settings(BaseSettings):
     database_url: str
 
     retrieval_k: int = 4
+    
+    # JWT and Google OAuth settings
+    jwt_secret_key: str = ""
+    jwt_algorithm: str = "HS256"
+    jwt_expiration_hours: int = 24
+    google_client_id: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

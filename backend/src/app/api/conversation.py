@@ -1,9 +1,10 @@
 """API endpoints for conversational multi-turn QA."""
 
-from fastapi import APIRouter, HTTPException, status, Response
+from fastapi import APIRouter, HTTPException, status, Response, Depends
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from ..services.conversation_service import get_conversation_service
+from ..core.auth import get_current_user
 
 conversation_router = APIRouter(prefix="/conversations", tags=["conversations"])
 
@@ -64,11 +65,15 @@ class ConversationSummary(BaseModel):
         response_model=CreateConversationResponse,
         status_code=status.HTTP_201_CREATED
 )
-async def create_conversation(file_id: Optional[str] = None)-> CreateConversationResponse:
-    """Create a new conversation session.
+async def create_conversation(
+    file_id: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+) -> CreateConversationResponse:
+    """Create a new conversation session for authenticated user.
 
     Args:
         file_id: Optional file_id to associate with this conversation for scoped retrieval
+        current_user: Authenticated user information
     
     Returns:
         session_id, confirmation message, file_id.
@@ -79,7 +84,8 @@ async def create_conversation(file_id: Optional[str] = None)-> CreateConversatio
     """
     try:
         service = get_conversation_service()
-        session_id = service.create_conversation(file_id=file_id)
+        user_id = current_user["user_id"]
+        session_id = service.create_conversation(file_id=file_id, user_id=user_id)
 
         return CreateConversationResponse(
             session_id=session_id,
@@ -109,12 +115,13 @@ async def create_conversation(file_id: Optional[str] = None)-> CreateConversatio
         "/{session_id}/ask",
         response_model=ConversationQuestionResponse,
         status_code=status.HTTP_200_OK
-        )
+)
 async def ask_in_conversation(
     session_id: str,
-    payload: ConversationQuestionRequest
-) -> ConversationQuestionResponse :
-    """Ask a question within a conversation context.
+    payload: ConversationQuestionRequest,
+    current_user: dict = Depends(get_current_user)
+) -> ConversationQuestionResponse:
+    """Ask a question within a conversation context (requires authentication).
     
     This endpoint maintains conversation history and provides
     context-aware responses across multiple turns.
@@ -122,6 +129,7 @@ async def ask_in_conversation(
     Args:
         session_id: The conversation session identifier.
         payload: Question and history preferences.
+        current_user: Authenticated user information
     
     Returns:
         Answer with conversation context.
@@ -129,6 +137,7 @@ async def ask_in_conversation(
     Raises:
         404: If session_id is not found.
         400: If question is empty.
+        403: If user doesn't own this conversation.
     """
 
     question = payload.question.strip()
@@ -141,6 +150,14 @@ async def ask_in_conversation(
     service = get_conversation_service()
 
     try:
+        # Verify user owns this conversation
+        user_id = current_user["user_id"]
+        if not service.verify_conversation_ownership(session_id, user_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this conversation"
+            )
+
         result = service.ask_question(
             session_id=session_id,
             question=question
@@ -172,23 +189,37 @@ async def ask_in_conversation(
     response_model=ConversationHistoryResponse,
     status_code=status.HTTP_200_OK
 )
-async def get_conversation_history(session_id: str, limit: Optional[int]= None ) -> ConversationHistoryResponse:
-    """Retrieve the full conversation history for a session.
+async def get_conversation_history(
+    session_id: str,
+    limit: Optional[int] = None,
+    current_user: dict = Depends(get_current_user)
+) -> ConversationHistoryResponse:
+    """Retrieve the full conversation history for a session (requires authentication).
     
     Args:
         session_id: The conversation session identifier.
         limit: Optional limit on number of messages to return.
+        current_user: Authenticated user information
     
     Returns:
         Complete conversation history with metadata and messages.
     
     Raises:
         404: If session_id is not found.
+        403: If user doesn't own this conversation.
     """
 
     service = get_conversation_service()
 
     try:
+        # Verify user owns this conversation
+        user_id = current_user["user_id"]
+        if not service.verify_conversation_ownership(session_id, user_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this conversation"
+            )
+        
         history = service.get_conversation_history(session_id, limit=limit)
 
         return ConversationHistoryResponse(
@@ -226,18 +257,33 @@ async def get_conversation_history(session_id: str, limit: Optional[int]= None )
     response_model=DeleteConversationResponse,
     status_code=status.HTTP_200_OK
 )
-async def delete_conversation(session_id: str) -> DeleteConversationResponse:
-    """Delete a conversation session and its history.
+async def delete_conversation(
+    session_id: str,
+    current_user: dict = Depends(get_current_user)
+) -> DeleteConversationResponse:
+    """Delete a conversation session and its history (requires authentication).
     
     Args:
         session_id: The conversation session identifier.
+        current_user: Authenticated user information
     
     Returns:
         Confirmation of deletion.
+        
+    Raises:
+        403: If user doesn't own this conversation.
     """
     service = get_conversation_service()
     
     try:
+        # Verify user owns this conversation
+        user_id = current_user["user_id"]
+        if not service.verify_conversation_ownership(session_id, user_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this conversation"
+            )
+        
         deleted = service.delete_conversation(session_id)
 
         if not deleted:
@@ -274,19 +320,25 @@ async def delete_conversation(session_id: str) -> DeleteConversationResponse:
     response_model=List[ConversationSummary],
     status_code=status.HTTP_200_OK
 )
-async def list_conversations(response: Response, limit: Optional[int] = 50) -> List[ConversationSummary]:
-    """List all active conversations with metadata.
+async def list_conversations(
+    response: Response,
+    limit: Optional[int] = 50,
+    current_user: dict = Depends(get_current_user)
+) -> List[ConversationSummary]:
+    """List all active conversations for authenticated user.
     
     Args:
         limit: Optional limit on number of conversations to return (default: 50 for performance).
+        current_user: Authenticated user information
     
     Returns:
-        List of conversation summaries.
+        List of conversation summaries for this user.
     """
     service = get_conversation_service()
 
     try:
-        conversations = service.list_conversations(limit=limit)
+        user_id = current_user["user_id"]
+        conversations = service.list_conversations(limit=limit, user_id=user_id)
         
         # Add cache control headers to reduce unnecessary requests
         response.headers["Cache-Control"] = "private, max-age=10"

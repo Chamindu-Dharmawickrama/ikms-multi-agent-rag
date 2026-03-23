@@ -59,12 +59,26 @@ def init_database():
     """Initialize the database schema for conversations and messages.
     
     Creates the necessary tables if they don't exist:
+    - users: stores user information from Google OAuth
     - conversations: stores conversation metadata
     - messages: stores individual messages within conversations
     """
 
     with get_db_connection() as connection:
         with connection.cursor() as cursor:
+
+            # Create users table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id VARCHAR(255) PRIMARY KEY,
+                    email VARCHAR(255) UNIQUE NOT NULL,
+                    name VARCHAR(500),
+                    picture VARCHAR(1000),
+                    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    last_login TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    metadata JSONB DEFAULT '{}'::jsonb
+                )
+            """)
 
             # Create files table for tracking uploaded documents
             cursor.execute("""
@@ -73,6 +87,7 @@ def init_database():
                     filename VARCHAR(500) NOT NULL,
                     file_path VARCHAR(1000),
                     uploaded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE,
                     metadata JSONB DEFAULT '{}'::jsonb
                 )
             """)
@@ -85,6 +100,7 @@ def init_database():
                     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
                     message_count INTEGER DEFAULT 0,
                     active_file_id VARCHAR(255) REFERENCES files(file_id) ON DELETE SET NULL,
+                    user_id VARCHAR(255) REFERENCES users(user_id) ON DELETE CASCADE,
                     metadata JSONB DEFAULT '{}'::jsonb
                 )
             """)
@@ -121,6 +137,37 @@ def init_database():
                 ON messages(timestamp)
             """)
             
+            # Migration: Add user_id column to existing tables if they don't have it
+            # Check and add user_id to files table
+            cursor.execute("""
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = 'files' AND column_name = 'user_id'
+                    ) THEN
+                        ALTER TABLE files ADD COLUMN user_id VARCHAR(255);
+                        ALTER TABLE files ADD CONSTRAINT files_user_id_fkey 
+                            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
+                    END IF;
+                END $$;
+            """)
+            
+            # Check and add user_id to conversations table
+            cursor.execute("""
+                DO $$ 
+                BEGIN
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns
+                        WHERE table_name = 'conversations' AND column_name = 'user_id'
+                    ) THEN
+                        ALTER TABLE conversations ADD COLUMN user_id VARCHAR(255);
+                        ALTER TABLE conversations ADD CONSTRAINT conversations_user_id_fkey 
+                            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
+                    END IF;
+                END $$;
+            """)
+            
             # Performance optimization indexes
             cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_conversations_updated_at 
@@ -130,6 +177,22 @@ def init_database():
             cursor.execute("""
                 CREATE INDEX IF NOT EXISTS idx_conversations_active_file_id 
                 ON conversations(active_file_id)
+            """)
+            
+            # Add indexes for user-specific queries
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_files_user_id 
+                ON files(user_id)
+            """)
+            
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_conversations_user_id 
+                ON conversations(user_id)
+            """)
+            
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_users_email 
+                ON users(email)
             """)
             
             connection.commit()

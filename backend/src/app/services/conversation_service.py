@@ -21,11 +21,12 @@ class ConversationService:
         self.db_service = get_conversation_db_service()
 
     # create new conversation
-    def create_conversation (self, file_id: str = None) -> str:
+    def create_conversation(self, file_id: str = None, user_id: Optional[str] = None) -> str:
         """Create a new conversation session in PostgreSQL.
 
         Args:
             file_id: Optional file_id to associate with this conversation.
+            user_id: User ID who owns this conversation.
 
         Returns:
             session_id: The unique identifier for the conversation (used as thread_id).
@@ -39,12 +40,28 @@ class ConversationService:
 
         # Create conversation in PostgreSQL database
         self.db_service.create_conversation(
-            session_id = session_id,
-            metadata = {"created_at": datetime.utcnow().isoformat()},
-            active_file_id=file_id
+            session_id=session_id,
+            metadata={"created_at": datetime.utcnow().isoformat()},
+            active_file_id=file_id,
+            user_id=user_id
         )
 
-        return session_id    
+        return session_id
+    
+    def verify_conversation_ownership(self, session_id: str, user_id: str) -> bool:
+        """Verify that a user owns a conversation.
+        
+        Args:
+            session_id: The conversation session ID.
+            user_id: The user ID to verify.
+            
+        Returns:
+            True if user owns the conversation, False otherwise.
+        """
+        conversation = self.db_service.get_conversation(session_id=session_id)
+        if not conversation:
+            return False
+        return conversation.user_id == user_id    
         
 
     # ask questions
@@ -174,19 +191,18 @@ class ConversationService:
         return self.db_service.delete_conversation(session_id)  
 
 
-    def list_conversations(self, limit: Optional[int] = None) -> list[Dict[str, Any]]:
-        """List all conversations from PostgreSQL.
+    def list_conversations(self, limit: Optional[int] = None, user_id: Optional[str] = None) -> list[Dict[str, Any]]:
+        """List all conversations from PostgreSQL, optionally filtered by user.
         
         Args:
             limit: Optional limit on number of conversations to return.
+            user_id: Optional user ID to filter conversations.
         
         Returns:
             List of conversation summaries.
         """
+        conversations = self.db_service.list_conversations(limit=limit, user_id=user_id)
 
-        conversations = self.db_service.list_conversations(limit=limit)
-
-    
         result = [
             {
                 "session_id": conv.session_id,

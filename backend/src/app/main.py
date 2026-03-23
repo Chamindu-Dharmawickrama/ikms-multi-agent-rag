@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from .api.ask import ask_router
 from .api.file import file_router
 from .api.conversation import conversation_router
+from .api.auth import auth_router
 from contextlib import asynccontextmanager
 from .db.connection import init_database, close_connection_pool
 from .db.checkpointer import get_postgres_checkpointer, close_checkpointer
@@ -131,6 +132,7 @@ async def unhandled_exception_handler(
     )
 
 # routes
+server.include_router(auth_router)
 server.include_router(ask_router)
 server.include_router(file_router)
 server.include_router(conversation_router)

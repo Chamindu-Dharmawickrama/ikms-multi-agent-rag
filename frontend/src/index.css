@@ -4,6 +4,8 @@
     --color-custom-dark: #1b1b1c;
     --color-custom-dark-less: #373738;
     --color-custom-dark-more: #161617;
+    --color-custom-dark-hover-less: #4a4a4b;
+    --color-custom-dark-hover-more: #2a2a2b;
 }
 
 @layer base {
@@ -55,7 +57,7 @@
     #root {
         isolation: isolate;
     }
-    
+
     /* Custom Scrollbar for Sidebar */
     .custom-scrollbar::-webkit-scrollbar {
         width: 6px;
@@ -72,5 +74,21 @@
 
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
         background: #6b7280;
+    }
+
+    /* Toast Animation */
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .animate-slideIn {
+        animation: slideIn 0.3s ease-out;
     }
 }

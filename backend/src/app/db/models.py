@@ -4,6 +4,17 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 
+class UserDB(BaseModel):
+    """Database model for a user."""
+    
+    user_id: str
+    email: str
+    name: Optional[str] = None
+    picture: Optional[str] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    last_login: datetime = Field(default_factory=datetime.utcnow)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
 class FileDB(BaseModel):
     """Database model for an uploaded file."""
     
@@ -11,6 +22,7 @@ class FileDB(BaseModel):
     filename: str
     file_path: Optional[str] = None
     uploaded_at: datetime = Field(default_factory=datetime.utcnow)
+    user_id: Optional[str] = None  # Link to user
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 class MessageDB(BaseModel):
@@ -32,6 +44,7 @@ class ConversationDB(BaseModel):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
     message_count : int = 0
     active_file_id: Optional[str] = None
-    filename: Optional[str] = None  
+    filename: Optional[str] = None
+    user_id: Optional[str] = None  # Link to user  
     metadata: Dict[str, Any] = Field(default_factory=dict) 
     messages : List[MessageDB] = Field(default_factory=list)

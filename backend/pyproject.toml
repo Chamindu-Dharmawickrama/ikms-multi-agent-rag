@@ -20,5 +20,7 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "python-multipart>=0.0.21",
     "uvicorn>=0.40.0",
+    "pyjwt>=2.8.0",
+    "google-auth>=2.27.0",
+    "httpx>=0.26.0",
 ]
-

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, Depends
 from pathlib import Path
 from fastapi import  File, HTTPException, UploadFile, status
 from ..services.indexing_service import index_pdf_file
@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import List
 import uuid
 from ..db.db_service import get_conversation_db_service
+from ..core.auth import get_current_user
 
 file_router = APIRouter(prefix="/files")
 
@@ -30,12 +31,16 @@ class FilesListResponse(BaseModel):
 
 # index the file 
 @file_router.post("/index-pdf", status_code=status.HTTP_200_OK)
-async def index_pdf(file : UploadFile = File(...)) -> IndexResponse:
+async def index_pdf(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+) -> IndexResponse:
     """Upload a PDF and index it into the vector database.
 
     This endpoint:
-    - Accepts a PDF file upload
+    - Accepts a PDF file upload (requires authentication)
     - Saves it to the local `data/uploads/` directory
+    - Associates the file with the authenticated user
     - Uses PyPDFLoader to load the document into LangChain `Document` objects
     - Indexes those documents into the configured Pinecone vector store
     """
@@ -56,9 +61,15 @@ async def index_pdf(file : UploadFile = File(...)) -> IndexResponse:
     file_path.write_bytes(contents)
 
     file_id = str(uuid.uuid4())
+    user_id = current_user["user_id"]
 
     # index the saved file 
-    chunks_indexed = index_pdf_file(file_path, file_id=file_id, filename=file.filename)
+    chunks_indexed = index_pdf_file(
+        file_path, 
+        file_id=file_id, 
+        filename=file.filename,
+        user_id=user_id
+    )
 
     return IndexResponse(
         status= "success",
@@ -68,17 +79,23 @@ async def index_pdf(file : UploadFile = File(...)) -> IndexResponse:
     )
 
 
-# Get list of all uploaded files
+# Get list of all uploaded files for the authenticated user
 @file_router.get("/", response_model=FilesListResponse, status_code=status.HTTP_200_OK)
-async def list_files(response: Response) -> FilesListResponse:
-    """Get a list of all uploaded files.
+async def list_files(
+    response: Response,
+    current_user: dict = Depends(get_current_user)
+) -> FilesListResponse:
+    """Get a list of uploaded files for the authenticated user.
     
     Returns:
         List of files with their metadata (file_id, filename, uploaded_at).
     """
     try:
         db_service = get_conversation_db_service()
-        files = db_service.list_files()
+        user_id = current_user["user_id"]
+        
+        # Filter files by user_id
+        files = db_service.list_files(user_id=user_id)
         
         file_items = [
             FileListItem(

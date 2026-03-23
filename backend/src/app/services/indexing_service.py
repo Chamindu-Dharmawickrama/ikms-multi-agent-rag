@@ -1,17 +1,19 @@
 """Service functions for indexing documents into the vector database."""
 
+from typing import Optional
 from langchain_community.document_loaders import PyPDFLoader
 from ..core.retrieval.vector_store import index_documents
 from ..db.db_service import get_conversation_db_service
 from datetime import datetime
 
-def index_pdf_file(file_path:str,file_id: str, filename: str)->int:
+def index_pdf_file(file_path: str, file_id: str, filename: str, user_id: Optional[str] = None) -> int:
     """Load a PDF from disk and index it into the vector DB with file tracking.
 
     Args:
         file_path: Path to the PDF file on disk.
         file_id: Unique identifier for this file.
         filename: Original filename for tracking.
+        user_id: User ID who uploaded the file.
 
     Returns:
         Number of document chunks indexed.
@@ -25,8 +27,9 @@ def index_pdf_file(file_path:str,file_id: str, filename: str)->int:
         file_id=file_id,
         filename=filename,
         file_path=str(file_path),
+        user_id=user_id,
         metadata={"uploaded_at": datetime.utcnow().isoformat()}
     )
 
     # Index documents with file_id metadata
-    return index_documents(docs ,file_id=file_id, filename=filename)
+    return index_documents(docs, file_id=file_id, filename=filename)
