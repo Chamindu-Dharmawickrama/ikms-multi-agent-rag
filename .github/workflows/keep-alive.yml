@@ -6,6 +6,10 @@ on:
         - cron: "*/5 * * * *"
     workflow_dispatch: # Allow manual trigger from Actions tab
 
+concurrency:
+    group: keep-render-alive
+    cancel-in-progress: true
+
 jobs:
     keep-alive-ping:
         runs-on: ubuntu-latest
@@ -15,29 +19,30 @@ jobs:
                   RENDER_SERVICE_URL: ${{ secrets.RENDER_SERVICE_URL }}
               run: |
                   if [ -z "$RENDER_SERVICE_URL" ]; then
-                    echo "❌ ERROR: RENDER_SERVICE_URL secret not configured"
+                    echo "ERROR: RENDER_SERVICE_URL secret not configured"
                     echo "Please add your Render service URL as a GitHub secret"
                     exit 1
                   fi
 
-                  HEALTH_URL="$RENDER_SERVICE_URL/health"
-                  echo "🔔 Pinging: $HEALTH_URL"
+                  BASE_URL="${RENDER_SERVICE_URL%/}"
+                  HEALTH_URL="$BASE_URL/health"
+                  echo "Pinging: $HEALTH_URL"
 
                   RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -m 10 "$HEALTH_URL")
 
                   if [ "$RESPONSE" -eq 200 ]; then
-                    echo "✅ Ping successful - Server is awake (Status: $RESPONSE)"
+                    echo "Ping successful - Server is awake (Status: $RESPONSE)"
                     echo "Database: Connected"
                   else
-                    echo "⚠️ Unexpected status: $RESPONSE"
+                    echo "Unexpected status: $RESPONSE"
                     # Don't fail on non-200 to avoid notification spam
                   fi
 
             - name: Log Keep-Alive Event
               if: always()
               run: |
-                  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-                  echo "⏰ Keep-Alive Check Completed"
-                  echo "📅 Timestamp: $(date)"
-                  echo "🎯 Purpose: Prevent Render free tier spindown"
-                  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                  echo "------------------------------------"
+                  echo "Keep-Alive Check Completed"
+                  echo "Timestamp: $(date)"
+                  echo "Purpose: Prevent Render free tier spindown"
+                  echo "------------------------------------"
