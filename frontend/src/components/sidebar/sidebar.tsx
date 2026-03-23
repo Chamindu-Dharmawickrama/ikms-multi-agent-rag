@@ -21,9 +21,15 @@ import {
     getConversationHistory,
 } from "../../store/chat/chatSlice";
 import { logout } from "../../store/auth/authSlice";
+import DeleteModal from "../ui/DeleteModal";
 
 const Sidebar = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [conversationToDelete, setConversationToDelete] = useState<{
+        sessionId: string;
+        filename: string;
+    } | null>(null);
     const { currentPage, setCurrentPage } = useNavigation();
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();
@@ -54,12 +60,16 @@ const Sidebar = () => {
     const handleDeleteConversation = (
         e: React.MouseEvent,
         sessionId: string,
+        filename: string,
     ) => {
         e.stopPropagation();
-        if (
-            window.confirm("Are you sure you want to delete this conversation?")
-        ) {
-            dispatch(deleteConversation(sessionId));
+        setConversationToDelete({ sessionId, filename });
+        setDeleteModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (conversationToDelete) {
+            dispatch(deleteConversation(conversationToDelete.sessionId));
         }
     };
 
@@ -147,7 +157,10 @@ const Sidebar = () => {
                 `}
             >
                 <div className="flex flex-col h-full">
-                    <div className="flex items-center justify-center p-4 mt-12 md:mt-5  ">
+                    <div className="flex items-center justify-center p-4 mt-12 md:mt-5 cursor-pointer" onClick={() => {
+                        navigate("/");
+                        setIsOpen(false);
+                    }}>
                         <h2
                             className="text-[23px] font-bold bg-clip-text text-transparent bg-white drop-shadow-lg tracking-wide"
                             style={{
@@ -278,6 +291,7 @@ const Sidebar = () => {
                                                         handleDeleteConversation(
                                                             e,
                                                             conversation.session_id,
+                                                            conversation.filename || "Untitled",
                                                         )
                                                     }
                                                     className=" group-hover:opacity-100 p-1.5 hover:bg-red-600/20 rounded transition-all"
@@ -343,6 +357,19 @@ const Sidebar = () => {
                     </div>
                 </div>
             </aside>
+
+            {/* Delete Confirmation Modal */}
+            <DeleteModal
+                isOpen={deleteModalOpen}
+                onClose={() => {
+                    setDeleteModalOpen(false);
+                    setConversationToDelete(null);
+                }}
+                onConfirm={confirmDelete}
+                title="Delete Conversation?"
+                description="This action cannot be undone. All messages in this conversation will be permanently deleted."
+                itemName={conversationToDelete?.filename}
+            />
         </>
     );
 };

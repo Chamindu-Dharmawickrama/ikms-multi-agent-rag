@@ -1,29 +1,43 @@
-name: Keep Railway App Alive
+name: Keep Render Server Alive
 
 on:
     schedule:
-        # Run every 5 minutes
+        # Run every 5 minutes to prevent Render free tier sleep
         - cron: "*/5 * * * *"
-    workflow_dispatch: # Allow manual triggers
+    workflow_dispatch: # Allow manual trigger from Actions tab
 
 jobs:
-    ping:
+    keep-alive-ping:
         runs-on: ubuntu-latest
         steps:
-            - name: Ping Railway App
+            - name: Ping Render Health Endpoint
+              env:
+                  RENDER_SERVICE_URL: ${{ secrets.RENDER_SERVICE_URL }}
               run: |
-                  echo "Pinging Railway app..."
-                  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -m 10 ${{ secrets.RAILWAY_APP_URL }}/health)
-
-                  if [ "$RESPONSE" -eq 200 ]; then
-                    echo " Ping successful - Status: $RESPONSE"
-                  else
-                    echo " Unexpected status: $RESPONSE"
+                  if [ -z "$RENDER_SERVICE_URL" ]; then
+                    echo "❌ ERROR: RENDER_SERVICE_URL secret not configured"
+                    echo "Please add your Render service URL as a GitHub secret"
                     exit 1
                   fi
 
-            - name: Log Result
+                  HEALTH_URL="$RENDER_SERVICE_URL/health"
+                  echo "🔔 Pinging: $HEALTH_URL"
+
+                  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -m 10 "$HEALTH_URL")
+
+                  if [ "$RESPONSE" -eq 200 ]; then
+                    echo "✅ Ping successful - Server is awake (Status: $RESPONSE)"
+                    echo "Database: Connected"
+                  else
+                    echo "⚠️ Unexpected status: $RESPONSE"
+                    # Don't fail on non-200 to avoid notification spam
+                  fi
+
+            - name: Log Keep-Alive Event
               if: always()
               run: |
-                  echo "Timestamp: $(date)"
-                  echo "Keep-alive ping completed"
+                  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+                  echo "⏰ Keep-Alive Check Completed"
+                  echo "📅 Timestamp: $(date)"
+                  echo "🎯 Purpose: Prevent Render free tier spindown"
+                  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pre-deployment validation script for Railway.
+Pre-deployment validation script for Render.
 Run this locally to verify all requirements are met before deploying.
 """
 
@@ -14,7 +14,7 @@ def check_env_file():
     
     env_path = Path(".env")
     if not env_path.exists():
-        print("    Warning: .env file not found (Railway uses Variables instead)")
+        print("    Warning: .env file not found (Render uses Environment Variables instead)")
         return True
     
     required_vars = [
@@ -135,7 +135,7 @@ def check_requirements():
 def main():
     """Run all validation checks."""
     print("=" * 60)
-    print("Railway Deployment Pre-flight Checks")
+    print("Render Deployment Pre-flight Checks")
     print("=" * 60)
     
     if Path("backend").exists():
@@ -160,13 +160,14 @@ def main():
     
     print("\n" + "=" * 60)
     if all(results):
-        print("All checks passed! Ready to deploy to Railway.")
+        print("All checks passed! Ready to deploy to Render.")
         print("=" * 60)
         print("\nNext steps:")
         print("1. git add .")
         print("2. git commit -m 'Fix deployment issues'")
         print("3. git push origin main")
-        print("4. Railway will auto-deploy")
+        print("4. Create Web Service on Render dashboard")
+        print("5. Set RENDER_SERVICE_URL GitHub secret")
         return 0
     else:
         print("Some checks failed. Fix the issues above before deploying.")

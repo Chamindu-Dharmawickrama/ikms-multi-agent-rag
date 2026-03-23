@@ -72,8 +72,8 @@ allowed_origins = [
 # Filter out empty strings
 allowed_origins = [origin for origin in allowed_origins if origin]
 
-# Add Railway.app domain pattern if deployed
-if os.getenv("RAILWAY_ENVIRONMENT"):
+# Add Render domain pattern if deployed
+if os.getenv("RENDER"):
     allowed_origins.append("*")  
 
 server.add_middleware(

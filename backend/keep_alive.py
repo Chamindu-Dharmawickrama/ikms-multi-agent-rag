@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Keep-Alive Script for Railway Deployment
+Keep-Alive Script for Render Deployment
 
-This script pings your Railway app every 5 minutes to prevent cold starts.
+This script pings your Render app every 5 minutes to prevent cold starts.
 Run this on your local machine or a free service like:
 - GitHub Actions (free)
 - Render Cron Jobs (free)
-- Railway Cron (built-in)
+- UptimeRobot (free)
 
 Usage:
-    python keep_alive.py https://your-app.railway.app
+    python keep_alive.py https://your-app.onrender.com
 """
 
 import sys
