@@ -40,7 +40,7 @@ const MessageList: React.FC<MessageListProps> = ({
                     }
                     return prev;
                 });
-            }, 5000);
+            }, 3500);
 
             return () => clearInterval(interval);
         }
