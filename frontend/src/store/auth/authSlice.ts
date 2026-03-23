@@ -53,7 +53,6 @@ const authSlice = createSlice({
     reducers: {
         rehydrateAuth: (state) => {
             if (typeof window !== "undefined") {
-
                 // get the token and user from localStorage
                 const token = localStorage.getItem("access_token");
                 const userRaw = localStorage.getItem("user");
