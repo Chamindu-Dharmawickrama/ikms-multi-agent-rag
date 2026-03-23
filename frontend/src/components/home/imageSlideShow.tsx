@@ -18,13 +18,13 @@ interface ImageSlideShowProps {
 const defaultSlides: Slide[] = [
     {
         id: 1,
-        image: "../../public/chat.png",
+        image: "/chat.png",
         title: "AI-Powered Knowledge",
         description: "Ask anything and get instant answers",
     },
     {
         id: 2,
-        image: "../../public/upload-file.png",
+        image: "/upload-file.png",
         title: "Upload & Index",
         description: "The Files stored in Vector Database",
     },
