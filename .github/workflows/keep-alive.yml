@@ -2,7 +2,7 @@ name: Keep Render Server Alive
 
 on:
     schedule:
-        # Run every 5 minutes to prevent Render free tier sleep
+        # Run every 5 minutes to reduce Render sleep/cold-start impact
         - cron: "*/5 * * * *"
     workflow_dispatch: # Allow manual trigger from Actions tab
 
@@ -13,8 +13,9 @@ concurrency:
 jobs:
     keep-alive-ping:
         runs-on: ubuntu-latest
+        timeout-minutes: 3
         steps:
-            - name: Ping Render Health Endpoint
+            - name: Ping Render Endpoint
               env:
                   RENDER_SERVICE_URL: ${{ secrets.RENDER_SERVICE_URL }}
               run: |
@@ -25,18 +26,66 @@ jobs:
                   fi
 
                   BASE_URL="${RENDER_SERVICE_URL%/}"
+                  PING_URL="$BASE_URL/ping"
                   HEALTH_URL="$BASE_URL/health"
-                  echo "Pinging: $HEALTH_URL"
+                  ROOT_URL="$BASE_URL/"
+                  echo "Primary ping URL: $PING_URL"
 
-                  RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -m 10 "$HEALTH_URL")
+                  ping_url() {
+                    URL="$1"
+                    LABEL="$2"
+                    MAX_TIME="$3"
 
-                  if [ "$RESPONSE" -eq 200 ]; then
-                    echo "Ping successful - Server is awake (Status: $RESPONSE)"
-                    echo "Database: Connected"
-                  else
-                    echo "Unexpected status: $RESPONSE"
-                    # Don't fail on non-200 to avoid notification spam
+                    echo "Pinging $LABEL ($URL) with max-time=${MAX_TIME}s"
+                    START_TS=$(date +%s)
+
+                    HTTP_CODE=$(curl -sS -L -o /dev/null -w "%{http_code}" --connect-timeout 10 --max-time "$MAX_TIME" "$URL")
+                    CURL_EXIT=$?
+
+                    END_TS=$(date +%s)
+                    DURATION=$((END_TS - START_TS))
+
+                    if [ "$CURL_EXIT" -eq 0 ] && [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 400 ]; then
+                      echo "Ping successful for $LABEL (status=$HTTP_CODE, duration=${DURATION}s)"
+                      return 0
+                    fi
+
+                    if [ "$CURL_EXIT" -eq 28 ]; then
+                      echo "Timeout for $LABEL after ${DURATION}s (curl exit 28)."
+                    elif [ "$CURL_EXIT" -ne 0 ]; then
+                      echo "Curl failed for $LABEL (exit=$CURL_EXIT, duration=${DURATION}s)."
+                    else
+                      echo "Non-success HTTP status for $LABEL: $HTTP_CODE (duration=${DURATION}s)."
+                    fi
+
+                    return 1
+                  }
+
+                  # Attempt 1: lightweight liveness check (no DB dependency)
+                  if ping_url "$PING_URL" "ping-attempt-1" 45; then
+                    echo "Keep-alive successful on first attempt."
+                    exit 0
                   fi
+
+                  # Attempt 2: hit root endpoint to trigger wake-up path
+                  ping_url "$ROOT_URL" "warmup-root" 45 || true
+
+                  # Give cold start some time to complete, then retry ping endpoint
+                  echo "Waiting for cold start to finish before retrying ping endpoint..."
+                  sleep 20
+
+                  if ping_url "$PING_URL" "ping-attempt-2" 60; then
+                    echo "Keep-alive successful after warm-up retry."
+                    exit 0
+                  fi
+
+                  # Optional diagnostic: check health endpoint to understand DB/startup state
+                  ping_url "$HEALTH_URL" "health-diagnostic" 60 || true
+
+                  echo "::warning::Render service did not respond successfully after retries."
+                  echo "::warning::This can happen when GitHub schedule is delayed and the service is fully asleep."
+                  # Keep workflow green to avoid alert spam from transient cold starts.
+                  exit 0
 
             - name: Log Keep-Alive Event
               if: always()

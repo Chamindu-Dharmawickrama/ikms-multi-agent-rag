@@ -111,6 +111,12 @@ def root():
             }
         )
 
+
+@server.get("/ping")
+def ping():
+    """Lightweight liveness endpoint used by keep-alive probes."""
+    return {"status": "alive"}
+
 # exception handling 
 @server.exception_handler(Exception)
 async def unhandled_exception_handler(
