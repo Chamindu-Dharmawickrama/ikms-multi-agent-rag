@@ -24,7 +24,7 @@ import { ToastContainer } from "../../components/ui/Toast";
 const Home = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
-    const { isAuthenticated, user, loading, error } = useSelector(
+    const { isAuthenticated, user, loading } = useSelector(
         (state: RootState) => state.auth,
     );
     const [showLoginModal, setShowLoginModal] = useState(false);
