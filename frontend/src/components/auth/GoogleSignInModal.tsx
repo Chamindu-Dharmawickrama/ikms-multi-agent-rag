@@ -1,9 +1,11 @@
+import { useState, useEffect } from "react";
 import { Sparkles, X } from "lucide-react";
 import { GoogleLogin } from "@react-oauth/google";
 import type { CredentialResponse } from "@react-oauth/google";
 
 interface GoogleSignInModalProps {
     isOpen: boolean;
+    isLoading?: boolean;
     onClose: () => void;
     onSuccess: (credentialResponse: CredentialResponse) => void;
     onError: () => void;
@@ -11,10 +13,31 @@ interface GoogleSignInModalProps {
 
 const GoogleSignInModal = ({
     isOpen,
+    isLoading,
     onClose,
     onSuccess,
     onError,
 }: GoogleSignInModalProps) => {
+    const [elapsedTime, setElapsedTime] = useState(0);
+
+    useEffect(() => {
+        let interval: ReturnType<typeof setInterval> | null = null;
+        
+        if (isLoading) {
+            interval = setInterval(() => {
+                setElapsedTime((prev) => prev + 100);
+            }, 100);
+        } else {
+            setElapsedTime(0);
+        }
+        
+        return () => {
+            if (interval !== null) {
+                clearInterval(interval);
+            }
+        };
+    }, [isLoading]);
+
     if (!isOpen) return null;
 
     return (
@@ -59,9 +82,43 @@ const GoogleSignInModal = ({
                             text="signin_with"
                             shape="pill"
                             width="300"
-                        
                         />
                     </div>
+
+                    {isLoading && (
+                        <div className="">
+                            <style>{`
+                                @keyframes dots {
+                                    0%, 20%, 50%, 80%, 100% { opacity: 0.3; }
+                                    40% { opacity: 1; }
+                                    60% { opacity: 0.5; }
+                                }
+                                .dot {
+                                    animation: dots 1.4s infinite;
+                                }
+                                .dot:nth-child(1) { animation-delay: 0s; }
+                                .dot:nth-child(2) { animation-delay: 0.2s; }
+                                .dot:nth-child(3) { animation-delay: 0.4s; }
+                            `}</style>
+                            <p className="text-sm text-gray-600">
+                                Signing you in
+                                <span className="dot text-[32px] ">.</span>
+                                <span className="dot text-[32px]">.</span>
+                                <span className="dot text-[32px]">.</span>
+                            </p>
+                        </div>
+                    )}
+
+                    {isLoading && elapsedTime > 7000 && (
+                        <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            <div className="items-center text-center">
+                                <p className="text-xs text-orange-500">
+                                    Server may take up to 45 seconds to respond
+                                    after inactivity.<br/>Please wait!.
+                                </p>
+                            </div>
+                        </div>
+                    )}
 
                     <p className="text-[13px] text-gray-600 pt-6">
                         By signing in, you agree to our Terms of Service and

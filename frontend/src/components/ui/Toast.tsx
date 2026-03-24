@@ -24,7 +24,7 @@ export const Toast = ({
 
     return (
         <div
-            className={`fixed top-4 right-4 z-50 flex items-center gap-3 min-w-[300px] max-w-[500px] px-4 py-3 rounded-lg shadow-xl border animate-slideIn ${
+            className={`fixed top-3 left-3 right-3 z-50 flex items-center gap-3 min-w-0 max-w-none px-4 py-3 rounded-lg shadow-xl border animate-slideIn sm:top-4 sm:left-auto sm:right-4 sm:min-w-[300px] sm:max-w-[500px] ${
                 type === "success"
                     ? "bg-gray-800 border-blue-500/50 text-white"
                     : "bg-gray-800 border-red-500/50 text-white"
@@ -37,10 +37,12 @@ export const Toast = ({
                     <XCircle className="w-5 h-5 text-red-400" />
                 )}
             </div>
-            <div className="flex-1 text-sm font-medium">{message}</div>
+            <div className="flex-1 text-sm font-medium leading-snug break-words">
+                {message}... Try Again after 45 seconds
+            </div>
             <button
                 onClick={onClose}
-                className="flex-shrink-0 text-gray-400 hover:text-white transition-colors"
+                className="flex-shrink-0 self-start text-gray-400 hover:text-white transition-colors"
             >
                 <X className="w-4 h-4" />
             </button>

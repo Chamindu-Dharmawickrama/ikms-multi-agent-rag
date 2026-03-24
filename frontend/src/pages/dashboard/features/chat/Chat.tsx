@@ -129,6 +129,13 @@ const Chat = () => {
                           : `Ask a question about ${activeFilename}...`
                 }
             />
+
+            <div>
+                <p className="text-[10px] text-gray-400 leading-relaxed ml-4">
+                    First response may take up to 45 seconds as server wakes
+                    from inactivity.
+                </p>
+            </div>
         </div>
     );
 };

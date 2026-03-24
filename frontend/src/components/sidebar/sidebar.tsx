@@ -148,7 +148,7 @@ const Sidebar = () => {
             {/* Sidebar */}
             <aside
                 className={`
-                    fixed md:static top-0 left-0 h-screen
+                    fixed md:static top-0 left-0 h-screen sm:pb-0 pb-5
                     w-78 bg-custom-dark 
                     text-white flex flex-col
                     transform transition-transform duration-300 ease-in-out
@@ -157,10 +157,13 @@ const Sidebar = () => {
                 `}
             >
                 <div className="flex flex-col h-full">
-                    <div className="flex items-center justify-center p-4 mt-12 md:mt-5 cursor-pointer" onClick={() => {
-                        navigate("/");
-                        setIsOpen(false);
-                    }}>
+                    <div
+                        className="flex items-center justify-center p-4 mt-12 md:mt-5 cursor-pointer"
+                        onClick={() => {
+                            navigate("/");
+                            setIsOpen(false);
+                        }}
+                    >
                         <h2
                             className="text-[23px] font-bold bg-clip-text text-transparent bg-white drop-shadow-lg tracking-wide"
                             style={{
@@ -291,7 +294,8 @@ const Sidebar = () => {
                                                         handleDeleteConversation(
                                                             e,
                                                             conversation.session_id,
-                                                            conversation.filename || "Untitled",
+                                                            conversation.filename ||
+                                                                "Untitled",
                                                         )
                                                     }
                                                     className=" group-hover:opacity-100 p-1.5 hover:bg-red-600/20 rounded transition-all"

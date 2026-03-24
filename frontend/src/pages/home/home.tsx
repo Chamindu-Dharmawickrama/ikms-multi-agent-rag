@@ -24,7 +24,7 @@ import { ToastContainer } from "../../components/ui/Toast";
 const Home = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch<AppDispatch>();
-    const { isAuthenticated, user } = useSelector(
+    const { isAuthenticated, user, loading, error } = useSelector(
         (state: RootState) => state.auth,
     );
     const [showLoginModal, setShowLoginModal] = useState(false);
@@ -302,6 +302,7 @@ const Home = () => {
             {/* Google Sign-In Modal */}
             <GoogleSignInModal
                 isOpen={showLoginModal}
+                isLoading={loading}
                 onClose={() => setShowLoginModal(false)}
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}

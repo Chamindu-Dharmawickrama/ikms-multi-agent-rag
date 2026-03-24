@@ -34,7 +34,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
     };
 
     return (
-        <div className="border-t border-gray-200 p-4 bg-white">
+        <div className="border-t border-gray-200 px-4 pt-4 pb-1 bg-white">
             <div className="flex items-center gap-3">
                 <input
                     type="text"
@@ -43,7 +43,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
                     onKeyPress={handleKeyPress}
                     placeholder={placeholder}
                     disabled={disabled}
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-custom-dark focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
+                    className="flex-1 px-4 sm:py-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-custom-dark focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed transition-colors"
                 />
                 <button
                     onClick={handleSend}
